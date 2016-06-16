@@ -29,7 +29,7 @@ module CanonicalHuffmanTree
      getEntry, CHTEntry, readEntry,
      litcode, eobcode,
      value, numBits, numExtraBits,
-     isLitcode, isEobcode, readEntryRaw, main) where
+     isLitcode, isEobcode, readEntryRaw) where
 
 import           BitStream
 import           Control.Applicative
@@ -164,8 +164,3 @@ reverseBits x numBits' = result
           | otherwise    = s `shiftL` 1
         lowestY = y .&. 1
 
-main = do
-    -- let bl = [(16,4),(17,5),(18,5),(0,4),(8,4),(7,3),(9,3),(6,4),(10,3),(5,5),(11,4),(4,5),(12,4),(3,5),(13,5),(2,0),(14,4)]
-    let bl = [(16,4),(17,5),(18,3),(0,3),(8,3),(7,3),(9,3),(6,4),(10,4),(5,0),(11,4),(4,0),(12,4),(3,7),(13,6),(0,7)]
-    let (CHT a _) = makeHuffmanTree (map snd bl) 19 [] []
-    print $ indices a

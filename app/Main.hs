@@ -40,14 +40,19 @@ import SAPCAR
 import qualified CanonicalHuffmanTree as CHT
 
 
+-- |HASCAR runtime options
 data Options = Options
-    { oFilename             :: !FilePath
-    , oDecompress           :: !Bool
-    , oVerbose              :: !Bool
-    , oQuiet                :: !Bool
+    { -- | Filename of the SAPCAR archive
+      oFilename             :: !FilePath
+    , -- | Whether to extract the archive's contents
+      oDecompress           :: !Bool
+    , -- | Whether to print verbose information during operation
+      oVerbose              :: !Bool
+    , -- | Whether to suppress printing the GPL header and other info
+      oQuiet                :: !Bool
     } deriving (Show)
 
-
+-- |Main entry point
 main :: IO ()
 main = execParser spec >>= doit
 

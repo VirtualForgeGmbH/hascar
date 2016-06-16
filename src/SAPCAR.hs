@@ -57,23 +57,35 @@ import qualified FlatedFile as FF
 
 import Debug.Trace
 
+-- | The SAPCAR monad. All operations on SAPCAR files
+-- should happen inside this monad.
 type SapCar m a = StateT SapCarFile m a
 
+-- | The state during operations inside the SAPCAR monad.
 data SapCarFile = SapCarFile
-    { sarFileH              :: Handle
+    { -- | The handle to the open SAPCAR file
+      sarFileH              :: !Handle
     }
 
+-- | The SAPCAR file header
 data SapCarHeader = SapCarHeader
-    { scVersion             :: !Text
-    , scFiles               :: ![CarEntry]
+    { -- | The version string of the SAPCAR archive
+      scVersion             :: !Text
+    , -- | Meta information on all files and directories in an archive
+      scFiles               :: ![CarEntry]
     } deriving (Show)
 
+-- | The type of an entry in the SAPCAR file
 data CarFileType
-    = CarFile
-    | CarDirectory
-    | CarUnknown
+    = -- | A regular file
+      CarFile
+    | -- | A directory
+      CarDirectory
+    | -- | Something else
+      CarUnknown
     deriving (Show, Eq, Enum)
 
+-- | Get the type of an entry in the SAPCAR file
 getType :: Get CarFileType
 getType = getType' <$> getByteString 2
     where
@@ -82,14 +94,23 @@ getType = getType' <$> getByteString 2
             | t == "DR" = CarDirectory
             | otherwise = CarUnknown
 
+-- | Meta information about a single file or directory
+-- in a SAPCAR archive
 data CarEntry = CarEntry
-    { cfFileType            :: !CarFileType
-    , cfPermissions         :: !Word32
-    , cfLength              :: !Word32
-    , cfTimestamp           :: !Word32
-    , cfFileName            :: !Text
-    , cfFileOffset          :: !Int64
-    , cfPayloadOffset       :: !Int64
+    { -- | The type of the entry
+      cfFileType            :: !CarFileType
+    , -- | The unix style permissions of the entry
+      cfPermissions         :: !Word32
+    , -- | The uncompressed length of the whole file, if it is a file
+      cfLength              :: !Word32
+    , -- | The EPOCH timestamp of the file
+      cfTimestamp           :: !Word32
+    , -- | The filename
+      cfFileName            :: !Text
+    , -- | The absolute offset of the entry in the SAPCAR file
+      cfFileOffset          :: !Int64
+    , -- | The absolute offset of the payload of the entry
+      cfPayloadOffset       :: !Int64
     }
 
 instance Show CarEntry where
@@ -103,9 +124,14 @@ instance Show CarEntry where
             (unparseDate $ cfTimestamp ce)
             (cfFileName ce)
 
+-- | Convert an EPOCH date to a string
+-- that is compatible to the output of the UNIX(R)
+-- "ls -l" command
 unparseDate :: Word32 -> String
 unparseDate = formatTime defaultTimeLocale "%b %e" . posixSecondsToUTCTime . fromIntegral
 
+-- | Convert UNIX permissions to a string
+-- that is compatible to the output of the UNIX(R)
 toPermissionText :: Word32 -> Text
 toPermissionText n = T.concat [u, g, o]
     where
@@ -124,23 +150,38 @@ perm :: Bool -> Text -> Text
 perm True w = w
 perm False w = "-"
 
+-- | Get the filename of a car entry
 carEntryFilename :: CarEntry -> Text
 carEntryFilename = cfFileName
 
+-- | The compression algorithm used
 data CompAlg
-    = CompLzh
-    | CompLzc
-    | CompUnknown
+    = -- | Lempel-Ziv huffman
+      CompLzh
+    | -- | LZC
+      CompLzc
+    | -- | Something else
+      CompUnknown
     deriving (Show, Eq, Enum)
 
+-- | The header of one compressed SAPCAR block.
+-- This is not to be confused with a single compressed
+-- block! One SAPCAR block usually contains one or two
+-- lzh blocks. Yes, it's confusing and not yielding the
+-- best compression ratio...
 data CompHdr = CompHdr
-    { chLen                 :: !Word32
-    , chAlg                 :: !CompAlg
-    , chMagic               :: !Word16
-    , chSpe                 :: !Word8
+    { -- | The length.
+      chLen                 :: !Word32
+    , -- | The used algorithm. This is indeed encoded for each block.
+      chAlg                 :: !CompAlg
+    , -- | The magic number.
+      chMagic               :: !Word16
+    , -- | The special byte. Meaning depends on the CompAlg.
+      chSpe                 :: !Word8
     } deriving (Show)
 
 
+-- | Run all actions in the SapCar monad.
 withSapCarFile
     :: (MonadIO m, MonadThrow m, MonadMask m)
     => Path b File
@@ -151,6 +192,8 @@ withSapCarFile sarfile = bracket open close . withSapCarHandle
         open   = liftIO $ openBinaryFile (toFilePath sarfile) ReadMode
         close  = liftIO . hClose
 
+-- | Run all actions in the SapCar monad but use
+-- the specified handle instead of a file.
 withSapCarHandle
     :: (MonadIO m, MonadThrow m, MonadMask m)
     => SapCar m a
@@ -160,6 +203,7 @@ withSapCarHandle a = evalStateT a . SapCarFile
 
 --     let res = runGet (parseFileHdr >> parseSAPCARFile []) c
 
+-- | Get all entries contained inside the SapCar file.
 getEntries :: MonadIO m => SapCar m [CarEntry]
 getEntries = do
     fh <- sarFileH <$> get
@@ -168,13 +212,15 @@ getEntries = do
     let Done _ _ entries = res
     return entries
 
+-- | Stream the contents of the given SapCar entry to
+-- the specified conduit sink.
 sourceEntry :: MonadIO m => CarEntry -> Sink S.ByteString IO a -> SapCar m a
 sourceEntry entry sink = do
     fh <- sarFileH <$> get
     liftIO $ hSeek fh AbsoluteSeek $ fromIntegral $ cfPayloadOffset entry
     liftIO $ decompressBlocks fh $$ sink
 
-
+-- | Feed chunks of data to the Get monad
 feedChunks :: Decoder a -> Handle -> IO (Decoder a)
 feedChunks d h = do
     chunk <- S.hGet h 8192
@@ -182,7 +228,7 @@ feedChunks d h = do
     then return $ pushEndOfInput d
     else feedChunks (pushChunk d chunk) h
 
-
+-- | Parse all SAPCAR entries. (tail recursive)
 parseSAPCARFile :: [CarEntry] -> Get [CarEntry]
 parseSAPCARFile acc = do
     empty <- isEmpty
@@ -192,6 +238,7 @@ parseSAPCARFile acc = do
         entry <- parseEntry
         parseSAPCARFile $ entry:acc
 
+-- | Write a SapCar entry to the specified file.
 writeToFile :: (MonadIO m, MonadMask m, MonadThrow m) => CarEntry -> Path b File -> SapCar m ()
 writeToFile entry path = bracket open close w
     where
@@ -199,6 +246,7 @@ writeToFile entry path = bracket open close w
         close   = liftIO . hClose
         w       = sourceEntry entry . writer
 
+-- | Provide a conduit sink, write everything that arrives there to the given handle.
 writer :: Handle -> Sink S.ByteString IO ()
 writer h = do
     chunk <- await
@@ -211,6 +259,7 @@ writer h = do
             writer h
         Nothing -> return ()
 
+-- | Parse the compression header of one SAPCAR block.
 parseCompHdr :: Get CompHdr
 parseCompHdr = do
     len <- getWord32le
@@ -224,6 +273,7 @@ parseCompHdr = do
     spe <- getWord8
     return $ CompHdr len alg' magic spe
 
+-- | Parse one SAPCAR entry's metadata, ignoring its contents.
 parseEntry :: Get CarEntry
 parseEntry = do
     fileOffset <- bytesRead
@@ -241,6 +291,7 @@ parseEntry = do
     skipBlocks
     return $ CarEntry ftype fperm flen ftimestamp (TE.decodeUtf8 fn) fileOffset payloadOffset
 
+-- | Skip all SAPCAR payload blocks for one SAPCAR entry.
 skipBlocks :: Get ()
 skipBlocks = do
     ed <- getByteString 2
@@ -252,11 +303,11 @@ skipBlocks = do
         "UD" -> skipBlocks
         _    -> error $ "Unknown block type " ++ show ed
 
+-- | Skip one SAPCAR payload block.
 skipBlock :: Get ()
 skipBlock = void (getWord32le >>= getByteString . fromIntegral)
 
---    blocks <- reverse <$> decompressBlocks []
-
+-- | Decompress all SAPCAR blocks of one SAPCAR entry.
 decompressBlocks :: Handle -> Source IO S.ByteString
 decompressBlocks h = do
     ed <- liftIO $ S.hGet h 2
@@ -273,12 +324,16 @@ decompressBlocks h = do
         "UE" -> (liftIO $ uncompressedBlock h) >>= yield
         _    -> error $ "Unknown block type " ++ show ed
 
+-- | Handle one SAPCAR block that is stored uncompressed
 uncompressedBlock :: Handle -> IO S.ByteString
 uncompressedBlock h = do
     blockSize <- S.hGet h 4
     let blockSize' = runGet getWord32le $ L.fromStrict blockSize
     S.hGet h $ fromIntegral blockSize'
 
+-- | Handle one SAPCAR block that consists of
+-- *one or more* compressed blocks of any supported
+-- compression algorithm.
 decompressBlock :: Handle -> IO S.ByteString
 decompressBlock h = do
     hdr <- L.fromStrict <$> S.hGet h 12
@@ -287,6 +342,7 @@ decompressBlock h = do
     blob <- S.hGet h $ fromIntegral fCompLen - 8
     return $ FF.decompressBlock blob
 
+-- | Parse (ignore, for now) the SAPCAR global header
 parseFileHdr :: Get ()
 parseFileHdr = void $ getByteString 8
 

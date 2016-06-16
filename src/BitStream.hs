@@ -108,8 +108,11 @@ getAndConsume numBits = do
     put newstream
     return bits
 
+-- | Is the BitStream empty?
 isEmpty :: State BitStream Bool
 isEmpty = (== empty) . bytes <$> get
 
+-- | Return a new BitStream that contains the unread
+-- rest of the given BitStream.
 getRest :: State BitStream BitStream
 getRest = get

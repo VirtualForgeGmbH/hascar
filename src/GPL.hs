@@ -10,6 +10,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as TI
 
+-- | The copyright text
 gpl :: [Text]
 gpl =
     [ "hascar, Copyright (C) 2016, Virtual Forge GmbH.", ""
@@ -20,6 +21,7 @@ gpl =
     , "This is free software, and you are welcome to redistribute"
     , "it under certain conditions; see the LICENSE file for details." ]
 
+-- | Print the copyright/legalese information
 printGpl :: IO ()
 printGpl = do
     TI.putStrLn "┌────────────────────────────────────────────────────────────────────┐"

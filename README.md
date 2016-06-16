@@ -1,5 +1,12 @@
-HASCAR is a free unzip utility for SAP's SAPCAR format. This is
-currently not in a stable state. This is partly based on research by
+HASCAR is a free unzip utility for SAP's SAPCAR format.
+
+It is implemented 100% in haskell, including the lzh decompression
+routine.
+
+This is not yet in a stable state. It will fail to LZH decompress
+files that span multiple blocks.
+
+The is partly based on research by
 Martin Gallo (https://github.com/CoreSecurity/pysap).
 
 What is supported:
@@ -13,8 +20,9 @@ TODO:
 * Implement LZC
 * Files that span multiple SAPCAR blocks and are LZH compressed do not
   decompress correctly
-* Implement Packing functionality
+* Implement packing functionality
 * Implement unpacking directories
+* Implement
 
 To compile, get stack ( http://docs.haskellstack.org/en/stable/README/
 ), then issue:
