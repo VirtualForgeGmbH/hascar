@@ -40,8 +40,6 @@ import           FlexibleUtils
 import           GHC.Arr
 
 
-import Debug.Trace
-
 -- |A data structure representing a particular huffman tree entry
 data CHTEntry = CHTEntry {
     -- |The value this entry encodes
@@ -110,8 +108,7 @@ isEobcode = (== eobcode)
 -- "regular" entries (integer values counting from zero), plus a list of
 -- additional entries and a list of extra lengths
 makeHuffmanTree :: [Int] -> Int -> [Int] -> [Int] -> CanonicalHuffmanTree
-makeHuffmanTree bitLengths countRegular extraBits' extraLengths = ("ARRY: " ++ show (foldl max 0 bitLengths) ++ "<BL R>" ++ show countRegular ++ " " ++ show (length extraBits') ++ "<S MAX> " ++ (show $ length chtArray) ++ " MAXSPEC> " ++ show maximumLength ++ "||" ++ show (length chtentries''')) `trace`
-    CHT chtArray maximumLength
+makeHuffmanTree bitLengths countRegular extraBits' extraLengths = CHT chtArray maximumLength
   where
     chtArray = makeFlexArray (0, maximum . map fst $ chtentries''') CHTInvalid chtentries'''
     chtentries = sort . map mkChtEntry . enumerate $ zip3 values extraBits bitLengths

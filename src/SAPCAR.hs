@@ -55,8 +55,6 @@ import qualified Data.Text.Encoding as TE
 
 import qualified FlatedFile as FF
 
-import Debug.Trace
-
 -- | The SAPCAR monad. All operations on SAPCAR files
 -- should happen inside this monad.
 type SapCar m a = StateT SapCarFile m a
@@ -253,9 +251,9 @@ writer h = do
     case chunk of
         Just chunk' -> do
             liftIO $ do
-                -- S.hPut h "================== BEGIN CHUNK =======================================\n"
+                S.hPut h "================== BEGIN CHUNK =======================================\n"
                 S.hPut h chunk'
-                -- S.hPut h "\n============================ END CHUNK ===============================\n"
+                S.hPut h "\n============================ END CHUNK ===============================\n"
             writer h
         Nothing -> return ()
 
@@ -313,10 +311,13 @@ decompressBlocks h = do
     ed <- liftIO $ S.hGet h 2
     case ed of
         "ED" -> do
-            (liftIO $ decompressBlock h) >>= yield
+            blocks <- (liftIO $ decompressBlock h)
+            mapM_ yield blocks
             void $ liftIO $ S.hGet h 4 -- TODO: This is the crc value. Use it!
         "DA" -> do
-            (liftIO $ decompressBlock h) >>= yield
+            blocks <- liftIO $ decompressBlock h
+            -- liftIO $ print blocks
+            mapM_ yield blocks
             decompressBlocks h
         "UD" -> do
             (liftIO $ uncompressedBlock h) >>= yield
@@ -334,7 +335,7 @@ uncompressedBlock h = do
 -- | Handle one SAPCAR block that consists of
 -- *one or more* compressed blocks of any supported
 -- compression algorithm.
-decompressBlock :: Handle -> IO S.ByteString
+decompressBlock :: Handle -> IO [S.ByteString]
 decompressBlock h = do
     hdr <- L.fromStrict <$> S.hGet h 12
     let (fCompLen, compHdr) = runGet ((,) <$> getWord32le <*> parseCompHdr) hdr

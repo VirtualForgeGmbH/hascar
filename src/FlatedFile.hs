@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- |
 -- Module: FlatedFile
 -- Copyright: (C) 2015-2016, Virtual Forge GmbH
@@ -111,9 +112,7 @@ decodeIt lt dt = BS.pack . toList <$> decodeIt' empty
         case numExtraBits entry of
             n | n == eobcode    -> return acc
             n | n == litcode    -> decodeIt' $ acc |> (fromIntegral $ value entry)
-            n | n >  litcode    -> do
-                "Sonderfall" `trace` return ()
-                return acc
+            n | n >  litcode    -> error "Sonderfall not handled"
             _             -> do
                 -- n <- (+ value entry) <$> getAndConsume (numExtraBits entry - 16)
                 n <- (+ value entry) <$> getAndConsume (numExtraBits entry)
@@ -126,11 +125,11 @@ decodeIt lt dt = BS.pack . toList <$> decodeIt' empty
                 decodeIt' l
       
 
--- |Decompress a single lzh compressed block
-decompressBlock :: BS.ByteString -> BS.ByteString
-decompressBlock inp = BS.concat . reverse $ blocks
+-- |Decompress one or more lzh compressed blocks
+decompressBlock :: BS.ByteString -> [BS.ByteString]
+decompressBlock inp = reverse blocks
     where
-        blocks  = evalState (decompressor []) . makeStream $ inp
+        blocks  = evalState decompressor . makeStream $ inp
 
 skipNonsenseBits :: State BitStream ()
 skipNonsenseBits = do
@@ -138,32 +137,36 @@ skipNonsenseBits = do
     when (numNonsenseBits > 0) $
         void $ getAndConsume numNonsenseBits
 
-decompressor :: [BS.ByteString] -> State BitStream [BS.ByteString]
-decompressor acc = do
+decompressor :: State BitStream [BS.ByteString]
+decompressor = do
     skipNonsenseBits
+    id <$> decompressor' []
+
+decompressor' :: [BS.ByteString] -> State BitStream [BS.ByteString]
+decompressor' acc = do
     lastBlock <- getAndConsume 1
     blockType <- getAndConsume 2
-    -- when (lastBlock == 1) $ void $ getAndConsume 4
     res <- case blockType of
         1 -> decompressStaticBlock
         2 -> decompressDynamicBlock
         _ -> error $ "Block type " ++ show blockType ++ " not supported!"
-    ("LASTBLOCK: " ++ show lastBlock) `trace` return ()
+    (show (lastBlock, blockType)) `trace` return ()
+    -- (show (lastBlock, blockType, res)) `trace` return ()
     case lastBlock of
         1 -> return (res:acc)
-        _ -> decompressor acc
+        0 -> decompressor' (res:acc)
 
 decompressDynamicBlock :: State BitStream BS.ByteString
 decompressDynamicBlock =  do
     numLiterals <- (+ 257) <$> getAndConsume 5
-    ("Literals: " ++ show numLiterals) `trace` return ()
+    -- ("Literals: " ++ show numLiterals) `trace` return ()
     numDistanceCodes <- (+ 1) <$> getAndConsume 5
-    ("DistCodes: " ++ show numDistanceCodes) `trace` return ()
+    -- ("DistCodes: " ++ show numDistanceCodes) `trace` return ()
     numBitLengths <- (+ 4) <$> getAndConsume 4
-    ("BitLengths: " ++ show numBitLengths) `trace` return ()
+    -- ("BitLengths: " ++ show numBitLengths) `trace` return ()
     let bitLengthPositions = Prelude.take numBitLengths border
     bitLengths' <- mapM (\blp -> (,) blp <$> getAndConsume 3) bitLengthPositions
-    ("BitLengths: " ++ show bitLengths') `trace` return ()
+    -- ("BitLengths: " ++ show bitLengths') `trace` return ()
     let bitLengths = makeFlexList (0, 18) 0 bitLengths'
         huft = makeHuffmanTree bitLengths 19 [] []
         entriesToRead = numLiterals + numDistanceCodes
