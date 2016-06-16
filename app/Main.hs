@@ -44,22 +44,23 @@ data Options = Options
     { oFilename             :: !FilePath
     , oDecompress           :: !Bool
     , oVerbose              :: !Bool
+    , oQuiet                :: !Bool
     } deriving (Show)
 
 
 main :: IO ()
--- main = CHT.main -- printGpl >> putStrLn "" >> execParser spec >>= doit
-main = printGpl >> putStrLn "" >> execParser spec >>= doit
+main = execParser spec >>= doit
 
 doit options = do
+    unless (oQuiet options) (printGpl >> putStrLn "")
     f <- parseAbsFile $ oFilename options
     withSapCarFile f $ do
         files <- getEntries
-        liftIO $ do
+        unless (oQuiet options) . liftIO . putStrLn $ show (length files) ++ " file(s) in the archive."
+        when (oVerbose options) $ liftIO $ do
             putStrLn "\nAll files:"
             forM_ files $ \file -> putStrLn $ ppShow file
             putStrLn ""
-            unless (oDecompress options) $ putStrLn "Use -x switch to extract archive"
         when (oDecompress options) $
             forM_ files $ \file -> do
                 path <- parseRelFile $ T.unpack $ carEntryFilename file
@@ -86,4 +87,9 @@ optionsParser = Options
         (  long "verbose"
         <> short 'v'
         <> help "Verbose operation" )
+    <*> switch
+        (  long "quiet"
+        <> short 'q'
+        <> help "Do not print the header" )
+
 
