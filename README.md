@@ -1,6 +1,6 @@
 HASCAR is a free unzip utility for SAP's SAPCAR format. This is
 currently not in a stable state. This is partly based on research by
-Martin Gallo.
+Martin Gallo (https://github.com/CoreSecurity/pysap).
 
 What is supported:
 
