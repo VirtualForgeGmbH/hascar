@@ -138,9 +138,7 @@ skipNonsenseBits = do
         void $ getAndConsume numNonsenseBits
 
 decompressor :: State BitStream [BS.ByteString]
-decompressor = do
-    skipNonsenseBits
-    id <$> decompressor' []
+decompressor = skipNonsenseBits >> decompressor' []
 
 decompressor' :: [BS.ByteString] -> State BitStream [BS.ByteString]
 decompressor' acc = do
