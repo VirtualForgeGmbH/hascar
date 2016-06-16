@@ -43,6 +43,7 @@ import qualified CanonicalHuffmanTree as CHT
 data Options = Options
     { oFilename             :: !FilePath
     , oDecompress           :: !Bool
+    , oVerbose              :: !Bool
     } deriving (Show)
 
 
@@ -72,11 +73,17 @@ spec = info (helper <*> optionsParser)
 
 optionsParser :: Parser Options
 optionsParser = Options
-    <$> argument str
+    <$> option str
         (  metavar "SAPCARFILE"
+        <> short 'f'
+        <> long "file"
         <> help "Path to the SAPCAR file" )
     <*> switch
         (  long "extract"
         <> short 'x'
         <> help "Extract archive contents into current directory" )
+    <*> switch
+        (  long "verbose"
+        <> short 'v'
+        <> help "Verbose operation" )
 
