@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/VirtualForgeGmbH/hascar.svg?branch=master)](https://travis-ci.org/VirtualForgeGmbH/hascar)
+
 # What is hascar?
 
 HASCAR is a free unzip utility for SAP's SAPCAR format.
