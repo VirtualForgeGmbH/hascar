@@ -62,6 +62,7 @@ data Options = Options
 main :: IO ()
 main = execParser spec >>= doit
 
+doit :: Options -> IO ()
 doit options = do
     unless (oQuiet options) (printGpl >> putStrLn "")
     f <- parseAbsFile $ oFilename options
