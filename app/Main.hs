@@ -65,8 +65,7 @@ main = execParser spec >>= doit
 doit :: Options -> IO ()
 doit options = do
     unless (oQuiet options) (printGpl >> putStrLn "")
-    f <- parseAbsFile $ oFilename options
-    withSapCarFile f $ do
+    withSapCarFile (oFilename options) $ do
         entries <- getEntries
         let files   = ((== CarFile) . cfFileType) `filter` entries
         let dirs    = ((== CarDirectory) . cfFileType) `filter` entries

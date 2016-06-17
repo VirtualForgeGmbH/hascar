@@ -25,6 +25,7 @@ module SAPCAR
     , CarFileType (..)
     , carEntryFilename
     , withSapCarFile
+    , withSapCarPath
     , withSapCarHandle
     , getEntries
     , sourceEntry
@@ -180,18 +181,28 @@ data CompHdr = CompHdr
 
 
 -- | Run all actions in the SapCar monad.
-withSapCarFile
+withSapCarPath
     :: (MonadIO m, MonadThrow m, MonadMask m)
     => Path b File
     -> SapCar m a
     -> m a
-withSapCarFile sarfile = bracket open close . withSapCarHandle
+withSapCarPath sarfile = bracket open close . withSapCarHandle
     where
         open   = liftIO $ openBinaryFile (toFilePath sarfile) ReadMode
         close  = liftIO . hClose
 
--- | Run all actions in the SapCar monad but use
--- the specified handle instead of a file.
+-- | Run all actions in the SapCar monad.
+withSapCarFile
+    :: (MonadIO m, MonadThrow m, MonadMask m)
+    => FilePath
+    -> SapCar m a
+    -> m a
+withSapCarFile sarfile = bracket open close . withSapCarHandle
+    where
+        open   = liftIO $ openBinaryFile sarfile ReadMode
+        close  = liftIO . hClose
+
+-- | Run all actions in the SapCar monad.
 withSapCarHandle
     :: (MonadIO m, MonadThrow m, MonadMask m)
     => SapCar m a
