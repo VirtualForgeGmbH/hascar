@@ -321,19 +321,28 @@ decompressBlocks :: Handle -> Source IO S.ByteString
 decompressBlocks h = do
     ed <- liftIO $ S.hGet h 2
     case ed of
+        -- Compressed block (any algorithm; last block)
         "ED" -> do
             blocks <- (liftIO $ decompressBlock h)
             mapM_ yield blocks
             void $ liftIO $ S.hGet h 4 -- TODO: This is the crc value. Use it!
+
+        -- Compressed block (any algorithm; more to follow)
         "DA" -> do
             blocks <- liftIO $ decompressBlock h
             -- liftIO $ print blocks
             mapM_ yield blocks
             decompressBlocks h
+
+        -- Uncompressed block (more to follow)
         "UD" -> do
             (liftIO $ uncompressedBlock h) >>= yield
             decompressBlocks h
+
+        -- Uncompressed block (last block)
+        -- Looks like uncompressed files don't have a CRC appended
         "UE" -> (liftIO $ uncompressedBlock h) >>= yield
+
         _    -> error $ "(while decompressing) unknown block type " ++ show ed
 
 -- | Handle one SAPCAR block that is stored uncompressed
