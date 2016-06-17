@@ -30,6 +30,7 @@ module SAPCAR
     , getEntries
     , sourceEntry
     , writeToFile
+    , writeToHandle
     ) where
 
 import Control.Monad
@@ -260,6 +261,10 @@ writeToFile entry path = bracket open close w
         open    = liftIO $ openBinaryFile (toFilePath path) WriteMode
         close   = liftIO . hClose
         w       = sourceEntry entry . writer
+
+-- | Write a SapCar entry to the specified handle.
+writeToHandle :: (MonadIO m, MonadMask m, MonadThrow m) => CarEntry -> Handle -> SapCar m ()
+writeToHandle entry = sourceEntry entry . writer
 
 -- | Provide a conduit sink, write everything that arrives there to the given handle.
 writer :: Handle -> Sink S.ByteString IO ()
