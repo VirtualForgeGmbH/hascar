@@ -41,7 +41,9 @@ import SAPCAR
 
 import qualified CanonicalHuffmanTree as CHT
 
+#ifndef mingw32_HOST_OS
 import System.Posix.Files as SPF
+#endif
 import System.Posix.Types (CMode(..))
 
 -- |HASCAR runtime options
@@ -83,14 +85,18 @@ doit options = do
                     liftIO $ putStrLn $ "Creating " ++ show dirname
                 liftIO $ do
                     createDirectoryIfMissing True $ fromRelDir dirname
+#ifndef mingw32_HOST_OS
                     SPF.setFileMode (fromRelDir dirname) $ CMode $ cfPermissions dir
+#endif
 
             forM_ files $ \file -> do
                 filename <- parseRelFile $ T.unpack $ carEntryFilename file
                 when (oVerbose options) $
                     liftIO $ putStrLn $ "Extracting " ++ show filename
                 writeToFile file filename
+#ifndef mingw32_HOST_OS
                 liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $ cfPermissions file
+#endif
 
 spec = info (helper <*> optionsParser)
      (  fullDesc
