@@ -7,6 +7,14 @@ sudo: false
 # Choose a lightweight base image; we provide our own build tools.
 language: c
 
+addons:
+  apt:
+    packages:
+    - libgmp-dev
+    - libpq-dev
+    - zlib-devel
+    - libxml2-devel
+
 # Caching so the next build will be fast too.
 cache:
   directories:
