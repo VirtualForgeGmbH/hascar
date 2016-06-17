@@ -288,7 +288,7 @@ parseEntry = do
     case ftype of
         CarFile -> do
             payloadOffset <- bytesRead
-            skipBlocks
+            unless (flen == 0) skipBlocks
             return $ CarEntry ftype fperm flen ftimestamp (TE.decodeUtf8 fn) fileOffset payloadOffset
         CarDirectory ->
             return $ CarEntry ftype fperm flen ftimestamp (TE.decodeUtf8 fn) fileOffset 0
@@ -328,7 +328,7 @@ decompressBlocks h = do
             (liftIO $ uncompressedBlock h) >>= yield
             decompressBlocks h
         "UE" -> (liftIO $ uncompressedBlock h) >>= yield
-        _    -> error $ "Unknown block type " ++ show ed
+        _    -> error $ "(while decompressing) unknown block type " ++ show ed
 
 -- | Handle one SAPCAR block that is stored uncompressed
 uncompressedBlock :: Handle -> IO S.ByteString
