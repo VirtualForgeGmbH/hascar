@@ -257,9 +257,9 @@ writer h = do
     case chunk of
         Just chunk' -> do
             liftIO $ do
-                S.hPut h "================== BEGIN CHUNK =======================================\n"
+                -- S.hPut h "================== BEGIN CHUNK =======================================\n"
                 S.hPut h chunk'
-                S.hPut h "\n============================ END CHUNK ===============================\n"
+                -- S.hPut h "\n============================ END CHUNK ===============================\n"
             writer h
         Nothing -> return ()
 
@@ -323,15 +323,13 @@ decompressBlocks h = do
     case ed of
         -- Compressed block (any algorithm; last block)
         "ED" -> do
-            blocks <- (liftIO $ decompressBlock h)
-            mapM_ yield blocks
+            (liftIO $ decompressBlock h) >>= yield
             void $ liftIO $ S.hGet h 4 -- TODO: This is the crc value. Use it!
 
         -- Compressed block (any algorithm; more to follow)
         "DA" -> do
-            blocks <- liftIO $ decompressBlock h
+            (liftIO $ decompressBlock h) >>= yield
             -- liftIO $ print blocks
-            mapM_ yield blocks
             decompressBlocks h
 
         -- Uncompressed block (more to follow)
@@ -355,7 +353,7 @@ uncompressedBlock h = do
 -- | Handle one SAPCAR block that consists of
 -- *one or more* compressed blocks of any supported
 -- compression algorithm.
-decompressBlock :: Handle -> IO [S.ByteString]
+decompressBlock :: Handle -> IO S.ByteString
 decompressBlock h = do
     hdr <- L.fromStrict <$> S.hGet h 12
     let (fCompLen, compHdr) = runGet ((,) <$> getWord32le <*> parseCompHdr) hdr

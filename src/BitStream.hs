@@ -40,6 +40,8 @@ import Data.ByteString
 import Data.ByteString.Char8
 import Data.Char
 
+import Debug.Trace
+
 -- |Opaque data type that contains a bitstream
 data BitStream = BitStreamy
     { bytes  :: !ByteString

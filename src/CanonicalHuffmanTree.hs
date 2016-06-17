@@ -39,6 +39,7 @@ import           Data.List
 import           FlexibleUtils
 import           GHC.Arr
 
+import Debug.Trace
 
 -- |A data structure representing a particular huffman tree entry
 data CHTEntry = CHTEntry {
@@ -76,7 +77,6 @@ getEntry (CHT arry _) idx = arry ! idx
 readEntryRaw :: CanonicalHuffmanTree -> State BitStream CHTEntry
 readEntryRaw (CHT arry maxNumBits) = do
     bits' <- getBits maxNumBits
-    -- let entry = (show (maxNumBits, bits')) `trace` arry ! bits'
     let entry = arry ! bits'
     consume $ numBits entry
     return entry

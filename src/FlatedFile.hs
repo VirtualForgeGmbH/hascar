@@ -36,6 +36,7 @@ import Data.Char
 import Data.Foldable (toList)
 import Data.Functor.Identity
 import Data.Sequence ((><), (|>))
+import Data.Word
 import System.IO
 
 import qualified Control.Exception as CE
@@ -104,8 +105,13 @@ entryReader entries huft entriesToRead lastEntry
             return $ replicate numZeroes 0
         | otherwise     = error "Corrupted file"
             
-decodeIt :: CanonicalHuffmanTree -> CanonicalHuffmanTree -> State BitStream BS.ByteString
-decodeIt lt dt = BS.pack . toList <$> decodeIt' empty
+decodeIt
+    :: CanonicalHuffmanTree
+    -> CanonicalHuffmanTree
+    -> DS.Seq Word8
+    -> State BitStream (DS.Seq Word8)
+-- decodeIt lt dt = BS.pack . toList <$> decodeIt' empty
+decodeIt lt dt = decodeIt'
   where
     decodeIt' acc = do
         entry <- readEntryRaw lt
@@ -126,8 +132,8 @@ decodeIt lt dt = BS.pack . toList <$> decodeIt' empty
       
 
 -- |Decompress one or more lzh compressed blocks
-decompressBlock :: BS.ByteString -> [BS.ByteString]
-decompressBlock inp = reverse blocks
+decompressBlock :: BS.ByteString -> BS.ByteString
+decompressBlock inp = blocks
     where
         blocks  = evalState decompressor . makeStream $ inp
 
@@ -137,34 +143,28 @@ skipNonsenseBits = do
     when (numNonsenseBits > 0) $
         void $ getAndConsume numNonsenseBits
 
-decompressor :: State BitStream [BS.ByteString]
-decompressor = skipNonsenseBits >> decompressor' []
+decompressor :: State BitStream BS.ByteString
+decompressor = skipNonsenseBits >> (BS.pack . toList <$> decompressor' empty)
 
-decompressor' :: [BS.ByteString] -> State BitStream [BS.ByteString]
+decompressor' :: DS.Seq Word8 -> State BitStream (DS.Seq Word8)
 decompressor' acc = do
     lastBlock <- getAndConsume 1
     blockType <- getAndConsume 2
     res <- case blockType of
-        1 -> decompressStaticBlock
-        2 -> decompressDynamicBlock
+        1 -> decompressStaticBlock acc
+        2 -> decompressDynamicBlock acc
         _ -> error $ "Block type " ++ show blockType ++ " not supported!"
-    (show (lastBlock, blockType)) `trace` return ()
-    -- (show (lastBlock, blockType, res)) `trace` return ()
     case lastBlock of
-        1 -> return (res:acc)
-        0 -> decompressor' (res:acc)
+        1 -> return res
+        0 -> decompressor' res
 
-decompressDynamicBlock :: State BitStream BS.ByteString
-decompressDynamicBlock =  do
+decompressDynamicBlock :: DS.Seq Word8 -> State BitStream (DS.Seq Word8)
+decompressDynamicBlock acc = do
     numLiterals <- (+ 257) <$> getAndConsume 5
-    -- ("Literals: " ++ show numLiterals) `trace` return ()
     numDistanceCodes <- (+ 1) <$> getAndConsume 5
-    -- ("DistCodes: " ++ show numDistanceCodes) `trace` return ()
     numBitLengths <- (+ 4) <$> getAndConsume 4
-    -- ("BitLengths: " ++ show numBitLengths) `trace` return ()
     let bitLengthPositions = Prelude.take numBitLengths border
     bitLengths' <- mapM (\blp -> (,) blp <$> getAndConsume 3) bitLengthPositions
-    -- ("BitLengths: " ++ show bitLengths') `trace` return ()
     let bitLengths = makeFlexList (0, 18) 0 bitLengths'
         huft = makeHuffmanTree bitLengths 19 [] []
         entriesToRead = numLiterals + numDistanceCodes
@@ -173,16 +173,14 @@ decompressDynamicBlock =  do
         distCodes = take numDistanceCodes $ drop numLiterals ll
         lengthTree = makeHuffmanTree lengthCodes 257 cplens csExtraLenBits
         distTree = makeHuffmanTree distCodes 0 cpdist csExtraDistBits
-    decodeIt lengthTree distTree
+    decodeIt lengthTree distTree acc
 
-decompressStaticBlock :: State BitStream BS.ByteString
-decompressStaticBlock =  do
+decompressStaticBlock :: DS.Seq Word8 -> State BitStream (DS.Seq Word8)
+decompressStaticBlock acc = do
     -- Length and dist codes copied from vpa108csulzh.cpp under GPL by SAP AG
     let lengthCodes = replicate 144 8 ++ replicate 112 9 ++ replicate 24 7 ++ replicate 8 8
         distCodes   = replicate 30 5
     -- End length and dist codes copied from vpa108csulzh.cpp under GPL by SAP AG
     let lengthTree  = makeHuffmanTree lengthCodes 257 cplens csExtraLenBits
         distTree    = makeHuffmanTree distCodes 0 cpdist csExtraDistBits
-    decodeIt lengthTree distTree
-
-
+    decodeIt lengthTree distTree acc
