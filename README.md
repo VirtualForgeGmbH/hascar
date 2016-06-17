@@ -41,32 +41,32 @@ same as with SAP(R)'s sapcar tool.
 
 # Example run:
 
-hc@espererh-pc ~/I/hascar λ hascar -xtvf /home/hc/test.sar 
-┌────────────────────────────────────────────────────────────────────┐
-│          hascar, Copyright (C) 2016, Virtual Forge GmbH.           │
-│                                                                    │
-│                   Maint.: Hans-Christian Esperer                   │
-│             <hans-christian.esperer@virtualforge.com>              │
-│                                                                    │
-│             hascar comes with ABSOLUTELY NO WARRANTY;              │
-│                 for details read the LICENSE file.                 │
-│     This is free software, and you are welcome to redistribute     │
-│   it under certain conditions; see the LICENSE file for details.   │
-└────────────────────────────────────────────────────────────────────┘
-
-5 entrie(s) in the archive.
-
-All entries:
--rw-r--r-- 0 root root 9302     Jun 10 00:00 sapcar-usage
--rw-r--r-- 0 root root 267468   Jun 10 00:00 pg244.txt
--rw-r--r-- 0 root root 34857    Jun 10 00:00 man.txt
--rw-r--r-- 0 root root 10485764 Jun 10 00:00 foo
--rw-r--r-- 0 root root 30       Jun 10 00:00 date
-
-Extracting "sapcar-usage"
-Extracting "pg244.txt"
-Extracting "man.txt"
-Extracting "foo"
-Extracting "date"
-
-hc@espererh-pc ~/I/hascar λ
+    hc@espererh-pc ~/I/hascar λ hascar -xtvf /home/hc/test.sar 
+    ┌────────────────────────────────────────────────────────────────────┐
+    │          hascar, Copyright (C) 2016, Virtual Forge GmbH.           │
+    │                                                                    │
+    │                   Maint.: Hans-Christian Esperer                   │
+    │             <hans-christian.esperer@virtualforge.com>              │
+    │                                                                    │
+    │             hascar comes with ABSOLUTELY NO WARRANTY;              │
+    │                 for details read the LICENSE file.                 │
+    │     This is free software, and you are welcome to redistribute     │
+    │   it under certain conditions; see the LICENSE file for details.   │
+    └────────────────────────────────────────────────────────────────────┘
+    
+    5 entrie(s) in the archive.
+    
+    All entries:
+    -rw-r--r-- 0 root root 9302     Jun 10 00:00 sapcar-usage
+    -rw-r--r-- 0 root root 267468   Jun 10 00:00 pg244.txt
+    -rw-r--r-- 0 root root 34857    Jun 10 00:00 man.txt
+    -rw-r--r-- 0 root root 10485764 Jun 10 00:00 foo
+    -rw-r--r-- 0 root root 30       Jun 10 00:00 date
+    
+    Extracting "sapcar-usage"
+    Extracting "pg244.txt"
+    Extracting "man.txt"
+    Extracting "foo"
+    Extracting "date"
+    
+    hc@espererh-pc ~/I/hascar λ
