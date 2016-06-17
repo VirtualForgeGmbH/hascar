@@ -38,7 +38,6 @@ import Data.Binary.Put
 import Data.Bits
 import Data.Conduit
 import Data.Int
-import Data.Knob
 import Data.Word
 import Data.Text (Text)
 import Data.Time.Clock.POSIX
