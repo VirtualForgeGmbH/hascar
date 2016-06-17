@@ -285,9 +285,14 @@ parseEntry = do
     fn <- getByteString $ fnlen - 1
     nulbyte <- getWord8
     when (nulbyte /= 0) $ error "NUL byte expected"
-    payloadOffset <- bytesRead
-    skipBlocks
-    return $ CarEntry ftype fperm flen ftimestamp (TE.decodeUtf8 fn) fileOffset payloadOffset
+    case ftype of
+        CarFile -> do
+            payloadOffset <- bytesRead
+            skipBlocks
+            return $ CarEntry ftype fperm flen ftimestamp (TE.decodeUtf8 fn) fileOffset payloadOffset
+        CarDirectory ->
+            return $ CarEntry ftype fperm flen ftimestamp (TE.decodeUtf8 fn) fileOffset 0
+        _ -> error $ "Unhandled type " ++ show ftype
 
 -- | Skip all SAPCAR payload blocks for one SAPCAR entry.
 skipBlocks :: Get ()
