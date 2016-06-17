@@ -13,3 +13,6 @@ cache:
   - $HOME/.ghc
   - $HOME/.cabal
   - $HOME/.stack
+
+# The line that performs the actual build
+script: stack $ARGS --no-terminal --install-ghc test --haddock
