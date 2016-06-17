@@ -54,6 +54,8 @@ data Options = Options
       oVerbose              :: !Bool
     , -- | Whether to suppress printing the GPL header and other info
       oQuiet                :: !Bool
+    , -- | Whether to list all entries in the archive
+      oListEntries          :: !Bool
     } deriving (Show)
 
 -- |Main entry point
@@ -68,7 +70,8 @@ doit options = do
         let files   = ((== CarFile) . cfFileType) `filter` entries
         let dirs    = ((== CarDirectory) . cfFileType) `filter` entries
         unless (oQuiet options) . liftIO . putStrLn $ show (length entries) ++ " entrie(s) in the archive."
-        when (oVerbose options) $ liftIO $ do
+
+        when (oListEntries options) $ liftIO $ do
             putStrLn "\nAll entries:"
             forM_ entries (putStrLn . ppShow)
             putStrLn ""
@@ -113,5 +116,9 @@ optionsParser = Options
         (  long "quiet"
         <> short 'q'
         <> help "Do not print the header" )
+    <*> switch
+        (  long "list"
+        <> short 't'
+        <> help "List all entries in the archive" )
 
 
