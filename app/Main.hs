@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- |
 -- (De-)compress SAPCAR files
@@ -40,6 +41,8 @@ import SAPCAR
 
 import qualified CanonicalHuffmanTree as CHT
 
+import System.Posix.Files as SPF
+import System.Posix.Types (CMode(..))
 
 -- |HASCAR runtime options
 data Options = Options
@@ -69,18 +72,22 @@ doit options = do
             putStrLn "\nAll entries:"
             forM_ entries (putStrLn . ppShow)
             putStrLn ""
+
         when (oDecompress options) $ do
             forM_ dirs $ \dir -> do
                 dirname <- parseRelDir $ T.unpack $ carEntryFilename dir
                 when (oVerbose options) $
                     liftIO $ putStrLn $ "Creating " ++ show dirname
-                liftIO $ createDirectoryIfMissing True $ fromRelDir dirname
+                liftIO $ do
+                    createDirectoryIfMissing True $ fromRelDir dirname
+                    SPF.setFileMode (fromRelDir dirname) $ CMode $ cfPermissions dir
 
             forM_ files $ \file -> do
                 filename <- parseRelFile $ T.unpack $ carEntryFilename file
                 when (oVerbose options) $
                     liftIO $ putStrLn $ "Extracting " ++ show filename
                 writeToFile file filename
+                liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $ cfPermissions file
 
 spec = info (helper <*> optionsParser)
      (  fullDesc
