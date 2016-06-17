@@ -379,5 +379,7 @@ decompressBlock h = do
 
 -- | Parse (ignore, for now) the SAPCAR global header
 parseFileHdr :: Get ()
-parseFileHdr = void $ getByteString 8
+parseFileHdr = do
+    hdr <- getByteString 8
+    unless (hdr == "CAR 2.01") $ error "Only the newest SAPCAR format (2.01) is supported"
 
