@@ -43,6 +43,7 @@ executable hascar
   build-depends:       base
                      , binary >= 0.7.5.0 && < 0.8
                      , bytestring >= 0.10.6.0 && < 0.11
+                     , directory >= 1.2.2.0 && < 1.3
                      , hascar
                      , optparse-applicative >= 0.12.1.0 && < 0.13
                      , path >= 0.5.7 && < 0.6

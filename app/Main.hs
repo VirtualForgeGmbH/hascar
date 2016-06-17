@@ -25,6 +25,7 @@ import Control.Monad.IO.Class
 import Data.Binary.Get
 import Options.Applicative
 import Path
+import System.Directory
 import System.Environment
 import System.IO
 import Text.Show.Pretty
@@ -60,17 +61,26 @@ doit options = do
     unless (oQuiet options) (printGpl >> putStrLn "")
     f <- parseAbsFile $ oFilename options
     withSapCarFile f $ do
-        files <- getEntries
-        unless (oQuiet options) . liftIO . putStrLn $ show (length files) ++ " file(s) in the archive."
+        entries <- getEntries
+        let files   = ((== CarFile) . cfFileType) `filter` entries
+        let dirs    = ((== CarDirectory) . cfFileType) `filter` entries
+        unless (oQuiet options) . liftIO . putStrLn $ show (length entries) ++ " entrie(s) in the archive."
         when (oVerbose options) $ liftIO $ do
-            putStrLn "\nAll files:"
-            forM_ files $ \file -> putStrLn $ ppShow file
+            putStrLn "\nAll entries:"
+            forM_ entries (putStrLn . ppShow)
             putStrLn ""
-        when (oDecompress options) $
+        when (oDecompress options) $ do
+            forM_ dirs $ \dir -> do
+                dirname <- parseRelDir $ T.unpack $ carEntryFilename dir
+                when (oVerbose options) $
+                    liftIO $ putStrLn $ "Creating " ++ show dirname
+                liftIO $ createDirectoryIfMissing True $ fromRelDir dirname
+
             forM_ files $ \file -> do
-                path <- parseRelFile $ T.unpack $ carEntryFilename file
-                liftIO $ putStrLn $ "Extracting " ++ show path
-                writeToFile file path
+                filename <- parseRelFile $ T.unpack $ carEntryFilename file
+                when (oVerbose options) $
+                    liftIO $ putStrLn $ "Extracting " ++ show filename
+                writeToFile file filename
 
 spec = info (helper <*> optionsParser)
      (  fullDesc

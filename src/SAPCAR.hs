@@ -21,7 +21,8 @@
 -- USA
 module SAPCAR
     ( SapCar
-    , CarEntry
+    , CarEntry (..)
+    , CarFileType (..)
     , carEntryFilename
     , withSapCarFile
     , withSapCarHandle
