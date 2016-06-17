@@ -215,8 +215,14 @@ getEntries = do
 sourceEntry :: MonadIO m => CarEntry -> Sink S.ByteString IO a -> SapCar m a
 sourceEntry entry sink = do
     fh <- sarFileH <$> get
-    liftIO $ hSeek fh AbsoluteSeek $ fromIntegral $ cfPayloadOffset entry
-    liftIO $ decompressBlocks fh $$ sink
+    case cfLength entry of
+        0 -> liftIO $ emptySource $$ sink
+        _ -> do
+            liftIO $ hSeek fh AbsoluteSeek $ fromIntegral $ cfPayloadOffset entry
+            liftIO $ decompressBlocks fh $$ sink
+
+emptySource :: Source IO S.ByteString
+emptySource = yield ""
 
 -- | Feed chunks of data to the Get monad
 feedChunks :: Decoder a -> Handle -> IO (Decoder a)
