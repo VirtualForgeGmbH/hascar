@@ -2,13 +2,13 @@ name:                hascar
 version:             0.1.0.0
 synopsis:            Decompress and compress SAP CAR files
 description:         Please see README.md
-homepage:            https://github.com/hce/hascar#readme
-license:             MIT
+homepage:            https://github.com/VirtualForgeGmbH/hascar
+license:             GPL2
 license-file:        LICENSE
 author:              Hans-Christian Esperer <hc@hcesperer.org>
 maintainer:          Hans-Christian Esperer <hc@hcesperer.org>
 copyright:           2016, Virtual Forge GmbH
-category:            Web
+category:            Cabal
 build-type:          Simple
 -- extra-source-files:
 cabal-version:       >=1.10
