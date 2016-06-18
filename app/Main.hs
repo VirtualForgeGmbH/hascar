@@ -24,7 +24,6 @@ module Main where
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Binary.Get
-import Options.Applicative
 import Path
 import System.Directory
 import System.Environment
@@ -35,8 +34,9 @@ import qualified Data.ByteString as S
 import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
 
+import Options
+
 import FlatedFile
-import GPL
 import SAPCAR
 
 import qualified CanonicalHuffmanTree as CHT
@@ -46,27 +46,12 @@ import System.Posix.Files as SPF
 #endif
 import System.Posix.Types (CMode(..))
 
--- |HASCAR runtime options
-data Options = Options
-    { -- | Filename of the SAPCAR archive
-      oFilename             :: !FilePath
-    , -- | Whether to extract the archive's contents
-      oDecompress           :: !Bool
-    , -- | Whether to print verbose information during operation
-      oVerbose              :: !Bool
-    , -- | Whether to suppress printing the GPL header and other info
-      oQuiet                :: !Bool
-    , -- | Whether to list all entries in the archive
-      oListEntries          :: !Bool
-    } deriving (Show)
-
 -- |Main entry point
 main :: IO ()
-main = execParser spec >>= doit
+main = runWithHeader it
 
-doit :: Options -> IO ()
-doit options = do
-    unless (oQuiet options) (printGpl >> putStrLn "")
+it :: Options -> IO ()
+it options = do
     withSapCarFile (oFilename options) $ do
         entries <- getEntries
         let files   = ((== CarFile) . cfFileType) `filter` entries
@@ -97,34 +82,5 @@ doit options = do
 #ifndef mingw32_HOST_OS
                 liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $ cfPermissions file
 #endif
-
-spec = info (helper <*> optionsParser)
-     (  fullDesc
-     <> progDesc "Decompress SAPCAR archives"
-     <> header "sapcar extractor" )
-
-optionsParser :: Parser Options
-optionsParser = Options
-    <$> option str
-        (  metavar "SAPCARFILE"
-        <> short 'f'
-        <> long "file"
-        <> help "Path to the SAPCAR file" )
-    <*> switch
-        (  long "extract"
-        <> short 'x'
-        <> help "Extract archive contents into current directory" )
-    <*> switch
-        (  long "verbose"
-        <> short 'v'
-        <> help "Verbose operation" )
-    <*> switch
-        (  long "quiet"
-        <> short 'q'
-        <> help "Do not print the header" )
-    <*> switch
-        (  long "list"
-        <> short 't'
-        <> help "List all entries in the archive" )
 
 
