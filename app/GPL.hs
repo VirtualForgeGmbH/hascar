@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 module GPL
     ( gpl
     , gpl'
@@ -7,6 +8,7 @@ module GPL
 
 import Control.Monad
 import Data.Text (Text)
+import Development.GitRev
 import Text.PrettyPrint.ANSI.Leijen
 
 import qualified Data.Text as T
@@ -33,7 +35,8 @@ gpl  = hsep . map (\l -> text (T.unpack l) <> line) $ lines
     where
         header  = " ┌────────────────────────────────────────────────────────────────────┐"
         lines   :: [Text]
-        lines   =  [ header ] ++ map pad gpl' ++ [ footer ]
+        lines   =  [ header ] ++ map pad gpl' ++ map pad
+            [ "", T.pack version ] ++ [ footer ]
         footer  = "└────────────────────────────────────────────────────────────────────┘"
 
 -- | Center a text with box characters at the leftmost
@@ -49,3 +52,5 @@ pad line = T.concat [ "│", padl', line, padr', "│" ]
         padl' = T.replicate padl " "
         padr' = T.replicate padr " "
 
+version :: String
+version = "hascar " ++ take 8 $(gitHash) ++ " revision " ++ $(gitCommitCount) ++ " on branch " ++ $(gitBranch)
