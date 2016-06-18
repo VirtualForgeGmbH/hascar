@@ -27,6 +27,7 @@ import Data.Binary.Get
 import Path
 import System.Directory
 import System.Environment
+import System.FilePath
 import System.IO
 import Text.Show.Pretty
 
@@ -76,6 +77,7 @@ it options = do
 
             forM_ files $ \file -> do
                 filename <- parseRelFile $ T.unpack $ carEntryFilename file
+                liftIO $ cdim $ fromRelFile filename
                 when (oVerbose options) $
                     liftIO $ putStrLn $ "Extracting " ++ show filename
                 writeToFile file filename
@@ -83,4 +85,14 @@ it options = do
                 liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $ cfPermissions file
 #endif
 
+
+cdim :: FilePath -> IO ()
+cdim fp = do
+    let fpt     = T.pack fp
+        parts   = T.split (== pathSeparator) fpt
+
+    when (length parts > 1) $ do
+        let path = T.unpack $ T.intercalate (T.pack [pathSeparator]) $ take (length parts - 1) parts
+        p <- parseRelDir path
+        createDirectoryIfMissing True $ fromRelDir p
 

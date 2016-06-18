@@ -44,6 +44,7 @@ executable hascar
                      , binary >= 0.7.5.0 && < 0.8
                      , bytestring >= 0.10.6.0 && < 0.11
                      , directory >= 1.2.2.0 && < 1.3
+                     , filepath >= 1.4.0.0 && < 1.5
                      , gitrev >= 1.2.0 && < 1.3
                      , hascar
                      , optparse-applicative >= 0.12.1.0 && < 0.13
