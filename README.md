@@ -26,6 +26,9 @@ TODO:
 * Implement LZC
 * Implement packing functionality
 * Maybe implement signature checking
+* Make the LZH algorithm more efficient (the author just about
+  started to learn haskell when he embarked on implementing
+  that algorithm :-)
 
 # Installing hascar
 
