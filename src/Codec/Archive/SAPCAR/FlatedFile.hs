@@ -42,7 +42,6 @@ import System.IO
 import qualified Control.Exception as CE
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
-import qualified Data.Attoparsec.ByteString.Lazy as DABL
 import qualified Data.Sequence as DS
 
 import Codec.Archive.SAPCAR.BitStream

@@ -48,7 +48,6 @@ import Data.Time.Format
 import Path
 import System.IO
 import Text.Printf
-import Text.Show.Pretty
 
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Lazy as L

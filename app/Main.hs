@@ -29,7 +29,6 @@ import System.Directory
 import System.Environment
 import System.FilePath
 import System.IO
-import Text.Show.Pretty
 
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Lazy as L
@@ -58,7 +57,7 @@ it options = do
 
         when (oListEntries options) $ liftIO $ do
             putStrLn "\nAll entries:"
-            forM_ entries (putStrLn . ppShow)
+            forM_ entries print
             putStrLn ""
 
         when (oDecompress options) $ do

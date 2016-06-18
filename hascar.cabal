@@ -1,5 +1,5 @@
 name:                hascar
-version:             0.1.0.1
+version:             0.1.1.0
 synopsis:            Decompress SAPCAR archives
 description:         Decompress SAPCAR archives
 homepage:            https://github.com/VirtualForgeGmbH/hascar
@@ -16,23 +16,21 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Codec.Archive.SAPCAR
+                     , Codec.Archive.SAPCAR.FlatedFile
   other-modules:       Codec.Archive.SAPCAR.BitStream
                      , Codec.Archive.SAPCAR.CanonicalHuffmanTree
-                     , Codec.Archive.SAPCAR.FlatedFile
                      , Codec.Archive.SAPCAR.FlexibleUtils
   build-depends:       base >= 4.7 && < 5
                      , array >= 0.5.1.0 && < 0.6
-                     , attoparsec >= 0.13.0.2 && < 0.14
-                     , binary >= 0.7.5.0 && < 0.8
+                     , binary >= 0.7.5.0 && < 0.9
                      , bytestring >= 0.10.6.0 && < 0.11
                      , containers >= 0.5.6.2 && < 0.6
                      , conduit >= 1.2.6.6 && < 1.3
                      , exceptions >= 0.8.2.1 && < 0.9
                      , mtl >= 2.2.1 && < 2.3
                      , path >= 0.5.7 && < 0.6
-                     , pretty-show >= 1.6.10 && < 1.7
                      , text >= 1.2.2.1 && < 1.3
-                     , time >= 1.5.0.1 && < 1.6
+                     , time >= 1.5.0.1 && < 1.7
   default-language:    Haskell2010
 
 executable hascar
@@ -43,7 +41,7 @@ executable hascar
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , ansi-wl-pprint >= 0.6.7.3 && < 0.7
-                     , binary >= 0.7.5.0 && < 0.8
+                     , binary >= 0.7.5.0 && < 0.9
                      , bytestring >= 0.10.6.0 && < 0.11
                      , directory >= 1.2.2.0 && < 1.3
                      , filepath >= 1.4.0.0 && < 1.5
@@ -51,9 +49,8 @@ executable hascar
                      , hascar
                      , optparse-applicative >= 0.12.1.0 && < 0.13
                      , path >= 0.5.7 && < 0.6
-                     , pretty-show >= 1.6.10 && < 1.7
                      , text >= 1.2.2.1 && < 1.3
-                     , transformers >= 0.4.2.0 && < 0.5
+                     , transformers >= 0.4.2.0 && < 0.6
   if !os(windows)
     build-depends:     unix >= 2.7.1.0 && < 2.8
   default-language:    Haskell2010
