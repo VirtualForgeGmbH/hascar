@@ -24,7 +24,10 @@
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 -- USA
-module FlexibleUtils (makeFlexArray, makeFlexList) where
+module Codec.Archive.SAPCAR.FlexibleUtils
+    ( makeFlexArray
+    , makeFlexList
+    ) where
 
 import           Control.Monad.ST
 import qualified Data.Array.ST    as FLEX

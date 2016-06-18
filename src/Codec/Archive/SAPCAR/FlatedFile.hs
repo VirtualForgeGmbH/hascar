@@ -25,7 +25,7 @@
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 -- USA
-module FlatedFile
+module Codec.Archive.SAPCAR.FlatedFile
     ( decompressBlock
     ) where
 
@@ -45,11 +45,9 @@ import qualified Data.ByteString.Lazy as BSL
 import qualified Data.Attoparsec.ByteString.Lazy as DABL
 import qualified Data.Sequence as DS
 
-import BitStream
-import CanonicalHuffmanTree
-import FlexibleUtils
-
-import Debug.Trace
+import Codec.Archive.SAPCAR.BitStream
+import Codec.Archive.SAPCAR.CanonicalHuffmanTree
+import Codec.Archive.SAPCAR.FlexibleUtils
 
 -- Copied from vpa108csulzh.cpp under GPL by SAP AG
 border :: [Int]

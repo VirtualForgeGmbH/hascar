@@ -37,10 +37,7 @@ import qualified Data.Text as T
 
 import Options
 
-import FlatedFile
-import SAPCAR
-
-import qualified CanonicalHuffmanTree as CHT
+import Codec.Archive.SAPCAR
 
 #ifndef mingw32_HOST_OS
 import System.Posix.Files as SPF

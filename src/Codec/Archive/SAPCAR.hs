@@ -19,7 +19,7 @@
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 -- USA
-module SAPCAR
+module Codec.Archive.SAPCAR
     ( SapCar
     , CarEntry (..)
     , CarFileType (..)
@@ -55,7 +55,7 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 
-import qualified FlatedFile as FF
+import qualified Codec.Archive.SAPCAR.FlatedFile as FF
 
 -- | The SAPCAR monad. All operations on SAPCAR files
 -- should happen inside this monad.

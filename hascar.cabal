@@ -15,11 +15,11 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     SAPCAR
-                     , BitStream
-                     , CanonicalHuffmanTree
-                     , FlatedFile
-                     , FlexibleUtils
+  exposed-modules:     Codec.Archive.SAPCAR
+  other-modules:       Codec.Archive.SAPCAR.BitStream
+                     , Codec.Archive.SAPCAR.CanonicalHuffmanTree
+                     , Codec.Archive.SAPCAR.FlatedFile
+                     , Codec.Archive.SAPCAR.FlexibleUtils
   build-depends:       base >= 4.7 && < 5
                      , array >= 0.5.1.0 && < 0.6
                      , attoparsec >= 0.13.0.2 && < 0.14

@@ -24,22 +24,21 @@
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 -- USA
-module CanonicalHuffmanTree
+module Codec.Archive.SAPCAR.CanonicalHuffmanTree
     (CanonicalHuffmanTree, makeHuffmanTree,
      getEntry, CHTEntry, readEntry,
      litcode, eobcode,
      value, numBits, numExtraBits,
      isLitcode, isEobcode, readEntryRaw) where
 
-import           BitStream
 import           Control.Applicative
 import           Control.Monad.State.Strict
 import           Data.Bits
 import           Data.List
-import           FlexibleUtils
 import           GHC.Arr
 
-import Debug.Trace
+import           Codec.Archive.SAPCAR.BitStream
+import           Codec.Archive.SAPCAR.FlexibleUtils
 
 -- |A data structure representing a particular huffman tree entry
 data CHTEntry = CHTEntry {
