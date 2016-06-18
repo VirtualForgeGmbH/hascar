@@ -1,6 +1,6 @@
 name:                hascar
 version:             0.1.0.0
-synopsis:            Decompress and compress SAP CAR files
+synopsis:            Decompress SAPCAR archives
 description:         Please see README.md
 homepage:            https://github.com/VirtualForgeGmbH/hascar
 license:             GPL-2
