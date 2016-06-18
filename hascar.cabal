@@ -1,7 +1,7 @@
 name:                hascar
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            Decompress SAPCAR archives
-description:         Please see README.md
+description:         Decompress SAPCAR archives
 homepage:            https://github.com/VirtualForgeGmbH/hascar
 license:             GPL-2
 license-file:        LICENSE
@@ -10,7 +10,7 @@ maintainer:          Hans-Christian Esperer <hc@hcesperer.org>
 copyright:           2016, Virtual Forge GmbH
 category:            Codec
 build-type:          Simple
--- extra-source-files:
+extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
