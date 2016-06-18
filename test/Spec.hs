@@ -9,7 +9,7 @@ import System.IO
 
 import qualified Data.ByteString as S
 
-import SAPCAR
+import Codec.Archive.SAPCAR
 
 bufSink :: Sink S.ByteString IO S.ByteString
 bufSink = S.concat . reverse <$> bufSink' []
