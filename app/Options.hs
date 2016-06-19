@@ -4,6 +4,7 @@ module Options
     , runWithHeader
     ) where
 
+import Control.Monad
 import Options.Applicative
 
 import qualified Data.Text as T
@@ -25,7 +26,7 @@ data Options = Options
     } deriving (Show)
 
 runWithHeader :: (Options -> IO a) -> IO a
-runWithHeader o = run (\l -> putGpl >> o l)
+runWithHeader o = run (\l -> unless (oQuiet l) putGpl >> o l)
 
 run :: (Options -> IO a) -> IO a
 run = (>>=) (execParser spec)
