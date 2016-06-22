@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ImpredicativeTypes #-}
+{-# LANGUAGE BangPatterns #-}
 -- |
 -- Module: FlatedFile
 -- Copyright: (C) 2015-2016, Virtual Forge GmbH
@@ -34,6 +35,7 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.ST
 import Control.Monad.State.Strict
+import Data.Array.Base
 import Data.Array.MArray
 import Data.Array.ST
 import Data.Array.Unboxed
@@ -48,6 +50,7 @@ import System.IO
 import qualified Control.Exception as CE
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
+import qualified Data.ByteString.Short.Internal as SB
 import qualified Data.Sequence as DS
 
 import Codec.Archive.SAPCAR.BitStream
@@ -157,9 +160,10 @@ copyBytes' s n m
 
 -- |Decompress one or more lzh compressed blocks
 decompressBlock :: BS.ByteString -> BS.ByteString
-decompressBlock c = BS.pack . take n . elems $ array
+decompressBlock c = BS.take n . SB.fromShort $ SB.SBS a
     where
-        (n, array) = decompressBlock' c
+        (n, array)          = decompressBlock' c
+        (!UArray _ _ _ a)    = array
 
 decompressBlock' :: BS.ByteString -> (Int, UArray Int Word8)
 decompressBlock' inp = runST $ do
