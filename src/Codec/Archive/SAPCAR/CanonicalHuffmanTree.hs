@@ -32,6 +32,7 @@ module Codec.Archive.SAPCAR.CanonicalHuffmanTree
      isLitcode, isEobcode, readEntryRaw) where
 
 import           Control.Applicative
+import           Control.Monad.ST
 import           Control.Monad.State.Strict
 import           Data.Bits
 import           Data.List
@@ -73,17 +74,17 @@ getEntry (CHT arry _) idx = arry ! idx
 -- |Read one entry from a bitstream using the given
 -- CanonicalHuffmanTree, returning the entry in the
 -- huffman tree, not the value it encodes
-readEntryRaw :: CanonicalHuffmanTree -> State BitStream CHTEntry
-readEntryRaw (CHT arry maxNumBits) = do
-    bits' <- getBits maxNumBits
+readEntryRaw :: CanonicalHuffmanTree -> BitStream s -> ST s CHTEntry
+readEntryRaw (CHT arry maxNumBits) stream = do
+    bits' <- getBits stream maxNumBits
     let entry = arry ! bits'
-    consume $ numBits entry
+    consume stream $ numBits entry
     return entry
 
 -- |Read one entry from a bitstream using the given
 -- CanonicalHuffmanTree
-readEntry :: CanonicalHuffmanTree -> State BitStream Int
-readEntry cht = value <$> readEntryRaw cht
+readEntry :: CanonicalHuffmanTree -> BitStream s -> ST s Int
+readEntry cht s = value <$> readEntryRaw cht s
 
 -- |A constant for literal entries
 litcode :: Int

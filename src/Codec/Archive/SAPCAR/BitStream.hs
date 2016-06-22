@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 -- |
 -- Module: BitStream
 -- Copyright: (C) 2015, Virtual Forge GmbH
@@ -31,90 +32,77 @@ module Codec.Archive.SAPCAR.BitStream
     , consume
     , getAndConsume
     , Codec.Archive.SAPCAR.BitStream.isEmpty
-    , getRest
     ) where
 
+import Control.Monad.ST
 import Control.Monad.State.Strict
+import Data.Array.MArray
+import Data.Array.ST
 import Data.Bits
 import Data.ByteString
 import Data.ByteString.Char8
 import Data.Char
+import Data.STRef
+import Data.Word
 
 import Debug.Trace
 
+import qualified Data.ByteString as S
+
 -- |Opaque data type that contains a bitstream
-data BitStream = BitStreamy
-    { bytes  :: !ByteString
-    , number :: !Int
-    , offset :: !Int
-    } deriving (Show)
+data BitStream s = BitStreamy
+    { bytes     :: STUArray s Int Word8
+    , len       :: Int
+    , number    :: STRef s Int
+    , offset    :: STRef s Int
+    , position  :: STRef s Int
+    }
 
 -- |Make a bitstream out of a ByteString
-makeStream :: ByteString -> BitStream
-makeStream theBytes = BitStreamy
-    { bytes=theBytes
-    , number=0
-    , offset=0 }
-
-getBits_ :: BitStream -> Int -> (BitStream, Int)
-getBits_ stream numBits =
-    if numBits > offset stream
-        then getBits_ newStream numBits
-        else (consumedStream, bits)
-  where
-    newStream = stream { number=number stream .|. byte `shiftL` offset stream,
-                         offset=offset stream + 8,
-                         bytes=Data.ByteString.Char8.tail $ bytes stream }
-    byte = ord . Data.ByteString.Char8.head $ bytes stream
-    consumedStream = stream -- { number=newNumber }
-    newNumber = if numBits == 32
-                    then 0
-                    else number stream `shiftR` numBits
-    bits = number stream .&. ((1 `shiftL` numBits) - 1)
+makeStream :: ByteString -> ST s (BitStream s)
+makeStream theBytes = do
+    array <- newArray (0, S.length theBytes) 0 :: ST s (STUArray s Int Word8)
+    mapM_ (\i -> writeArray array i $ S.index theBytes i) [0..(S.length theBytes - 1)]
+    number <- newSTRef 0
+    offset <- newSTRef 0
+    position <- newSTRef 0
+    return $ BitStreamy
+        { bytes=array
+        , len=S.length theBytes
+        , number=number
+        , offset=offset
+        , position=position }
 
 -- |Return the specified number of bits from a BitStream,
 -- converted to an integer using big endian coding
-getBits :: Int -> State BitStream Int
-getBits 0       = return 0
-getBits numBits = do
-    stream <- get
-    let (newstream, result) = getBits_ stream numBits
-    put newstream
-    return result
+getBits :: BitStream s -> Int -> ST s Int
+getBits _ 0 = return 0
+getBits stream numBits = do
+    offs <- readSTRef $ offset stream
+    num  <- readSTRef $ number stream
+    if numBits > offs
+        then do
+            pos <- readSTRef $ position stream
+            newByte <- fromIntegral <$> readArray (bytes stream) pos
+            writeSTRef (position stream) $ pos + 1
+            let num' = num .|. newByte `shiftL` offs
+            writeSTRef (offset stream) $ offs + 8
+            writeSTRef (number stream) num'
+            getBits stream numBits
+        else let bits = num .&. ((1 `shiftL` numBits) - 1)
+             in  return bits
 
-consume_ :: BitStream -> Int -> BitStream
-consume_ stream numBits =
-    stream { offset=offset stream - numBits,
-             number=if numBits == 32
-                then 0
-                else number stream `shiftR` numBits }
+consume :: BitStream s -> Int -> ST s ()
+consume stream numBits = do
+    modifySTRef (offset stream) $ subtract numBits
+    modifySTRef (number stream) $ \n -> if numBits == 32 then 0 else n `shiftR` numBits
 
--- |Consume the specified number of bits
-consume :: Int -> State BitStream ()
-consume numBits = do
-    stream <- get
-    put $ consume_ stream numBits
-
-getAndConsume_ :: BitStream -> Int -> (BitStream, Int)
-getAndConsume_ stream numBits = (newStream, bits)
-    where
-        (stream', bits) = getBits_ stream numBits
-        newStream = consume_ stream' numBits
-
--- |A combination of the getBits and consume functions
-getAndConsume :: Int -> State BitStream Int
-getAndConsume 0       = return 0
-getAndConsume numBits = do
-    stream <- get
-    let (newstream, bits) = getAndConsume_ stream numBits
-    put newstream
-    return bits
+getAndConsume :: BitStream s -> Int -> ST s Int
+getAndConsume stream numBits = do
+    res <- getBits stream numBits
+    consume stream numBits
+    return res
 
 -- | Is the BitStream empty?
-isEmpty :: State BitStream Bool
-isEmpty = (== empty) . bytes <$> get
-
--- | Return a new BitStream that contains the unread
--- rest of the given BitStream.
-getRest :: State BitStream BitStream
-getRest = get
+isEmpty :: BitStream s -> ST s Bool
+isEmpty bs = (==) (len bs) <$> readSTRef (position bs)
