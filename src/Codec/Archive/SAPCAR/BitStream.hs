@@ -92,11 +92,13 @@ getBits stream numBits = do
         else let bits = num .&. ((1 `shiftL` numBits) - 1)
              in  return bits
 
+-- |Consume the specified number of bits
 consume :: BitStream s -> Int -> ST s ()
 consume stream numBits = do
     modifySTRef (offset stream) $ subtract numBits
     modifySTRef (number stream) $ \n -> if numBits == 32 then 0 else n `shiftR` numBits
 
+-- |A combination of the getBits and consume functions
 getAndConsume :: BitStream s -> Int -> ST s Int
 getAndConsume stream numBits = do
     res <- getBits stream numBits
