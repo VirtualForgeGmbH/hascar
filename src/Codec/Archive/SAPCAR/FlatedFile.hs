@@ -28,7 +28,7 @@
 -- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 -- USA
 module Codec.Archive.SAPCAR.FlatedFile
-    ( decompressBlock
+    ( decompressBlocks
     ) where
 
 import Control.Applicative
@@ -159,8 +159,8 @@ copyBytes' s n m
     | otherwise = return ()
 
 -- |Decompress one or more lzh compressed blocks
-decompressBlock :: Int -> BS.ByteString -> BS.ByteString
-decompressBlock uncompressedSize c = SB.fromShort $ SB.SBS a
+decompressBlocks :: Int -> BS.ByteString -> BS.ByteString
+decompressBlocks uncompressedSize c = SB.fromShort $ SB.SBS a
     where
         (_, array)          = decompressBlock' uncompressedSize c
         (!UArray _ _ _ a)    = array
