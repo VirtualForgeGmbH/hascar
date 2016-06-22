@@ -38,7 +38,7 @@ executable hascar
   main-is:             Main.hs
   other-modules:       GPL
                      , Options
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -rtsopts
   build-depends:       base
                      , ansi-wl-pprint >= 0.6.7.3 && < 0.7
                      , binary >= 0.7.5.0 && < 0.9
