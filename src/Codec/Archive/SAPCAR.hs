@@ -374,7 +374,7 @@ decompressBlock h = do
     let (fCompLen, compHdr) = runGet ((,) <$> getWord32le <*> parseCompHdr) hdr
     when (chAlg compHdr /= CompLzh) $ error "Currently only LZH is supported, not LZC"
     blob <- S.hGet h $ fromIntegral fCompLen - 8
-    return $ FF.decompressBlock blob
+    return $ FF.decompressBlock (fromIntegral $ chLen compHdr) blob
 
 -- | Parse (ignore, for now) the SAPCAR global header
 parseFileHdr :: Get ()

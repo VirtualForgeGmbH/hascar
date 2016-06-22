@@ -159,16 +159,16 @@ copyBytes' s n m
     | otherwise = return ()
 
 -- |Decompress one or more lzh compressed blocks
-decompressBlock :: BS.ByteString -> BS.ByteString
-decompressBlock c = BS.take n . SB.fromShort $ SB.SBS a
+decompressBlock :: Int -> BS.ByteString -> BS.ByteString
+decompressBlock uncompressedSize c = SB.fromShort $ SB.SBS a
     where
-        (n, array)          = decompressBlock' c
+        (_, array)          = decompressBlock' uncompressedSize c
         (!UArray _ _ _ a)    = array
 
-decompressBlock' :: BS.ByteString -> (Int, UArray Int Word8)
-decompressBlock' inp = runST $ do
+decompressBlock' :: Int -> BS.ByteString -> (Int, UArray Int Word8)
+decompressBlock' uncompressedSize inp = runST $ do
     stream <- makeStream inp
-    o <- decompressor stream
+    o <- decompressor uncompressedSize stream
     o' <- freeze $ osBuf o
     l <- readSTRef $ osPos o
     return (l, o')
@@ -184,10 +184,10 @@ makeOutStream len = OutStream
     <$> (newArray (0, len - 1) 0 :: ST s (STUArray s Int Word8))
     <*> newSTRef 0
 
-decompressor :: BitStream s -> ST s (OutStream s)
-decompressor s = do
+decompressor :: Int -> BitStream s -> ST s (OutStream s)
+decompressor uncompressedSize s = do
     skipNonsenseBits s
-    o <- makeOutStream 65536
+    o <- makeOutStream uncompressedSize
     decompressor' s o
     return o
 
