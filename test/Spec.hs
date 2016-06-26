@@ -27,7 +27,7 @@ main = do
     res <- withSapCarPath path $ do
         entries <- getEntries
         unless (length entries == 1) $ error "test6.sar should contain exactly one entry!"
-        let entry = entries !! 0
+        let entry = head entries
         unless (cfFileName entry == "pg244.txt") $ error "Entry in test6.sar should be called 'pg244.txt'!"
         unless (cfFileType entry == CarFile) $ error "Entry in test6.sar should be of type 'file'!"
         sourceEntry entry bufSink
