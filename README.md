@@ -29,6 +29,23 @@ TODO:
 * Make the LZH algorithm more efficient (the author just about
   started to learn haskell when he embarked on implementing
   that algorithm :-)
+  => Some work on this has been done; more is required.
+
+# Performance
+
+The lzh algorithm is implemented in pure haskell. I have spent some time
+optimizing it, but more can certainly be done. Currently the performance is
+probably acceptable for most cases, but it is still a factor ten compared to
+the reference C implementation:
+
+Decompressing a 136 MB payload (34MB compressed), the performance looks like
+this:
+
+    hascar: 7.94user 0.10system 0:08.05elapsed 99%CPU (0avgtext+0avgdata 102676maxresident)k
+
+    sapcar: 0.84user 0.07system 0:00.92elapsed 99%CPU (0avgtext+0avgdata 8244maxresident)k
+
+Both executed on a single CPU core. (Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz)
 
 # Installing hascar
 
