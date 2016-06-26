@@ -48,37 +48,36 @@ main :: IO ()
 main = runWithHeader it
 
 it :: Options -> IO ()
-it options = do
-    withSapCarFile (oFilename options) $ do
-        entries <- getEntries
-        let files   = ((== CarFile) . cfFileType) `filter` entries
-        let dirs    = ((== CarDirectory) . cfFileType) `filter` entries
-        unless (oQuiet options) . liftIO . putStrLn $ show (length entries) ++ " entrie(s) in the archive."
+it options = withSapCarFile (oFilename options) $ do
+    entries <- getEntries
+    let files   = ((== CarFile) . cfFileType) `filter` entries
+    let dirs    = ((== CarDirectory) . cfFileType) `filter` entries
+    unless (oQuiet options) . liftIO . putStrLn $ show (length entries) ++ " entrie(s) in the archive."
 
-        when (oListEntries options) $ liftIO $ do
-            putStrLn "\nAll entries:"
-            forM_ entries print
-            putStrLn ""
+    when (oListEntries options) $ liftIO $ do
+        putStrLn "\nAll entries:"
+        forM_ entries print
+        putStrLn ""
 
-        when (oDecompress options) $ do
-            forM_ dirs $ \dir -> do
-                dirname <- parseRelDir $ T.unpack $ carEntryFilename dir
-                when (oVerbose options) $
-                    liftIO $ putStrLn $ "Creating " ++ show dirname
-                liftIO $ do
-                    createDirectoryIfMissing True $ fromRelDir dirname
+    when (oDecompress options) $ do
+        forM_ dirs $ \dir -> do
+            dirname <- parseRelDir $ T.unpack $ carEntryFilename dir
+            when (oVerbose options) $
+                liftIO $ putStrLn $ "Creating " ++ show dirname
+            liftIO $ do
+                createDirectoryIfMissing True $ fromRelDir dirname
 #ifndef mingw32_HOST_OS
-                    SPF.setFileMode (fromRelDir dirname) $ CMode $ cfPermissions dir
+                SPF.setFileMode (fromRelDir dirname) $ CMode $ cfPermissions dir
 #endif
 
-            forM_ files $ \file -> do
-                filename <- parseRelFile $ T.unpack $ carEntryFilename file
-                liftIO $ cdim $ fromRelFile filename
-                when (oVerbose options) $
-                    liftIO $ putStrLn $ "Extracting " ++ show filename
-                writeToFile file filename
+        forM_ files $ \file -> do
+            filename <- parseRelFile $ T.unpack $ carEntryFilename file
+            liftIO $ cdim $ fromRelFile filename
+            when (oVerbose options) $
+                liftIO $ putStrLn $ "Extracting " ++ show filename
+            writeToFile file filename
 #ifndef mingw32_HOST_OS
-                liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $ cfPermissions file
+            liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $ cfPermissions file
 #endif
 
 
