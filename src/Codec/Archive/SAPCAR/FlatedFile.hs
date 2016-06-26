@@ -82,7 +82,7 @@ csExtraLenBits = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3,
 
 data OutStream s = OutStream
     { osBuf     :: STUArray s Int Word8
-    , osPos     :: STRef s Int }
+    , osPos     :: STUArray s Int Int }
 
 readInt32Big :: Handle -> IO Int
 readInt32Big h = do
@@ -141,13 +141,13 @@ decodeIt lt dt stream out = do
 
 writeOut :: OutStream s -> Word8 -> ST s ()
 writeOut s b = do
-    pos <- readSTRef $ osPos s
+    pos <- readArray (osPos s) 0
     writeArray (osBuf s) pos b
-    writeSTRef (osPos s) $ pos + 1
+    writeArray (osPos s) 0 $ pos + 1
 
 copyBytes :: OutStream s -> Int -> Int -> ST s ()
 copyBytes buf dist len = do
-    minPos <- subtract dist <$> readSTRef (osPos buf)
+    minPos <- subtract dist <$> readArray (osPos buf) 0
     copyBytes' buf minPos $ minPos + len
 
 copyBytes' :: OutStream s -> Int -> Int -> ST s ()
@@ -169,7 +169,7 @@ decompressBlock' uncompressedSize inp = runST $ do
     stream <- makeStream inp
     o <- decompressor uncompressedSize stream
     o' <- freeze $ osBuf o
-    l <- readSTRef $ osPos o
+    l <- readArray (osPos o) 0
     return (l, o')
 
 skipNonsenseBits :: BitStream s -> ST s ()
@@ -181,7 +181,7 @@ skipNonsenseBits stream = do
 makeOutStream :: Int -> ST s (OutStream s)
 makeOutStream len = OutStream
     <$> (newArray (0, len - 1) 0 :: ST s (STUArray s Int Word8))
-    <*> newSTRef 0
+    <*> (newArray (0, 1) 0 :: ST s (STUArray s Int Int))
 
 decompressor :: Int -> BitStream s -> ST s (OutStream s)
 decompressor uncompressedSize s = do
