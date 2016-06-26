@@ -79,18 +79,46 @@ getBits :: BitStream s -> Int -> ST s Int
 getBits _ 0 = return 0
 getBits stream numBits = do
     offs <- readSTRef $ offset stream
-    num  <- readSTRef $ number stream
     if numBits > offs
-        then do
-            pos <- readSTRef $ position stream
-            newByte <- fromIntegral <$> readArray (bytes stream) pos
-            writeSTRef (position stream) $ pos + 1
-            let num' = num .|. newByte `shiftL` offs
-            writeSTRef (offset stream) $ offs + 8
-            writeSTRef (number stream) num'
-            getBits stream numBits
-        else let bits = num .&. ((1 `shiftL` numBits) - 1)
-             in  return bits
+        then case numBits - offs of
+            n | n < 9  -> refill False stream >> returnBits stream numBits
+            n | n < 17 -> refill True  stream >> returnBits stream numBits
+            _          -> refill True  stream >> getBits stream numBits
+        else returnBits stream numBits
+
+returnBits :: BitStream s -> Int -> ST s Int
+returnBits stream numBits = do
+    num <- readSTRef $ number stream
+    return $ num .&. ((1 `shiftL` numBits) - 1)
+
+refill :: Bool -> BitStream s-> ST s ()
+{-# INLINE refill #-}
+refill two stream = do
+    pos <- readSTRef $ position stream
+    num <- readSTRef $ number stream
+    offs <- readSTRef $ offset stream
+    if two
+    then refillTwoBits pos num offs stream
+    else refillOneBit  pos num offs stream
+
+refillOneBit :: Int -> Int -> Int -> BitStream s -> ST s ()
+{-# INLINE refillOneBit #-}
+refillOneBit pos num offs stream = do
+    newByte <- fromIntegral <$> readArray (bytes stream) pos
+    writeSTRef (position stream) $ pos + 1
+    let num' = num .|. newByte `shiftL` offs
+    writeSTRef (offset stream) $ offs + 8
+    writeSTRef (number stream) num'
+
+refillTwoBits :: Int -> Int -> Int -> BitStream s -> ST s ()
+{-# INLINE refillTwoBits #-}
+refillTwoBits pos num offs stream = do
+    newByte1 <- fromIntegral <$> readArray (bytes stream) pos
+    newByte2 <- fromIntegral <$> readArray (bytes stream) (pos + 1)
+    writeSTRef (position stream) $ pos + 2
+    let num' = num .|. newByte1 `shiftL` offs .|. newByte2 `shiftL` (offs + 8)
+    writeSTRef (offset stream) $ offs + 16
+    writeSTRef (number stream) num'
 
 -- |Consume the specified number of bits
 consume :: BitStream s -> Int -> ST s ()
