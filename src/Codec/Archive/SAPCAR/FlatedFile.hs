@@ -221,12 +221,14 @@ decompressDynamicBlock stream out = do
     return ()
     decodeIt lengthTree distTree stream out
 
+staticLengthTree :: CanonicalHuffmanTree
 staticLengthTree = makeHuffmanTree lengthCodes 257 cplens csExtraLenBits
     where
         -- Length and dist codes copied from vpa108csulzh.cpp under GPL by SAP AG
         lengthCodes = replicate 144 8 ++ replicate 112 9 ++ replicate 24 7 ++ replicate 8 8
         -- End length and dist codes copied from vpa108csulzh.cpp under GPL by SAP AG
 
+staticDistTree :: CanonicalHuffmanTree
 staticDistTree = makeHuffmanTree distCodes 0 cpdist csExtraDistBits
     where
         -- Length and dist codes copied from vpa108csulzh.cpp under GPL by SAP AG
