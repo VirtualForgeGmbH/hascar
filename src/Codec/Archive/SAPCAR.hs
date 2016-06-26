@@ -270,12 +270,7 @@ writer :: Handle -> Sink S.ByteString IO ()
 writer h = do
     chunk <- await
     case chunk of
-        Just chunk' -> do
-            liftIO $ do
-                -- S.hPut h "================== BEGIN CHUNK =======================================\n"
-                S.hPut h chunk'
-                -- S.hPut h "\n============================ END CHUNK ===============================\n"
-            writer h
+        Just chunk' -> liftIO (S.hPut h chunk') >> writer h
         Nothing -> return ()
 
 -- | Parse the compression header of one SAPCAR block.
@@ -321,8 +316,8 @@ skipBlocks = do
     ed <- getByteString 2
     skipBlock
     case ed of
-        "ED" -> getWord32le >> return ()
-        "UE" -> getWord32le >> return ()
+        "ED" -> void getWord32le
+        "UE" -> void getWord32le
         "DA" -> skipBlocks
         "UD" -> skipBlocks
         _    -> error $ "Unknown block type " ++ show ed
@@ -338,23 +333,22 @@ decompressBlocks h = do
     case ed of
         -- Compressed block (any algorithm; last block)
         "ED" -> do
-            (liftIO $ decompressBlock h) >>= yield
+            liftIO (decompressBlock h) >>= yield
             void $ liftIO $ S.hGet h 4 -- TODO: This is the crc value. Use it!
 
         -- Compressed block (any algorithm; more to follow)
         "DA" -> do
-            (liftIO $ decompressBlock h) >>= yield
-            -- liftIO $ print blocks
+            liftIO (decompressBlock h) >>= yield
             decompressBlocks h
 
         -- Uncompressed block (more to follow)
         "UD" -> do
-            (liftIO $ uncompressedBlock h) >>= yield
+            liftIO (uncompressedBlock h) >>= yield
             decompressBlocks h
 
         -- Uncompressed block (last block)
         -- Looks like uncompressed files don't have a CRC appended
-        "UE" -> (liftIO $ uncompressedBlock h) >>= yield
+        "UE" -> liftIO (uncompressedBlock h) >>= yield
 
         _    -> error $ "(while decompressing) unknown block type " ++ show ed
 

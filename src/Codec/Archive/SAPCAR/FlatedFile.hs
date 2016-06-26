@@ -147,7 +147,7 @@ writeOut s b = do
 
 copyBytes :: OutStream s -> Int -> Int -> ST s ()
 copyBytes buf dist len = do
-    minPos <- (subtract dist) <$> readSTRef (osPos buf)
+    minPos <- subtract dist <$> readSTRef (osPos buf)
     copyBytes' buf minPos $ minPos + len
 
 copyBytes' :: OutStream s -> Int -> Int -> ST s ()

@@ -66,7 +66,7 @@ makeStream theBytes = do
     number <- newSTRef 0
     offset <- newSTRef 0
     position <- newSTRef 0
-    return $ BitStreamy
+    return BitStreamy
         { bytes=array
         , len=S.length theBytes
         , number=number
