@@ -56,6 +56,27 @@ stack build && stack install
 
 hascar will be installed to ~/.local/bin
 
+# Verifying signatures
+
+You can use hascar to decompress and subsequently inspect the contents
+of a SAR file. You would normally not install the contents from
+untrusted SAR files, so there is no need to verify the signature.
+
+If, OTOH, you do trust the original SAR file but wish to verify the
+signature to ensure you are indeed dealing with the original SAR
+file's contents, like when installing patches to your SAP system, then
+you will need to do the following: Since hascar at this time does not
+support verifying signatures, you need to use SAP's own tool for that
+purpose. You can use hascar to initially decompress the archive. This
+step ensures that only archives with a correct and untampered file
+header and compressed contents are accpted. Then, use SAP's own sapcar
+tool to create a new archive from the decompressed archive. You will
+now have a trusted archive, because you created it yourself. You can
+then use SAP's original tool to decompress it again, while verifying
+the signature.
+
+The only attack vector left is the signature checking algorithm.
+
 # Usage
 
 Run hascar with the -h flag to get help. Basically, the usage should be the
