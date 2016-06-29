@@ -69,11 +69,11 @@ you will need to do the following: Since hascar at this time does not
 support verifying signatures, you need to use SAP's own tool for that
 purpose. You can use hascar to initially decompress the archive. This
 step ensures that only archives with a correct and untampered file
-header and compressed contents are accpted. Then, use SAP's own sapcar
-tool to create a new archive from the decompressed archive. You will
-now have a trusted archive, because you created it yourself. You can
-then use SAP's original tool to decompress it again, while verifying
-the signature.
+header and compressed contents are accepted. Then, use SAP's own
+sapcar tool to create a new archive from the decompressed archive. You
+will now have a trusted archive, because you created it yourself. You
+can then use SAP's original tool to decompress it again, while
+verifying the signature.
 
 The only attack vector left is the signature checking algorithm.
 
