@@ -10,8 +10,8 @@ routine.
 This is not yet in a stable state. It should successfully unpack lzh
 compressed files and uncompressed files.
 
-The SAPCAR container format decoder is based on research done by
-Martin Gallo (https://github.com/CoreSecurity/pysap) with further
+The SAPCAR container format decoder is based on [research done by
+Martin Gallo](https://github.com/CoreSecurity/pysap) with further
 investigation by Hans-Christian Esperer <hc@hcesperer.org>, who also
 did the LZH decompressor reimplementation.
 
@@ -49,12 +49,20 @@ Both executed on a single CPU core. (Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz)
 
 # Installing hascar
 
-To compile and install, first get stack (
+# nixos
+
+Users of [nixos](https://nixos.org)  can simply install hascar by issuing "nix-env -iaP haskellPackages.hascar".
+You need to be subscribed to the unstable channel at this time.
+
+# Windows/GNU Linux/FreeBSD/OSX
+
+To compile and install, first [get stack](
 http://docs.haskellstack.org/en/stable/README/), then issue:
 
 stack build && stack install
 
-hascar will be installed to ~/.local/bin
+hascar will be installed to ~/.local/bin  . You should set your PATH variable to point
+to this directory.
 
 # Verifying signatures
 
