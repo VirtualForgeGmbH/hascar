@@ -158,7 +158,10 @@ copyBytes' s n m
     | otherwise = return ()
 
 -- |Decompress one or more lzh compressed blocks
-decompressBlocks :: Int -> BS.ByteString -> BS.ByteString
+decompressBlocks
+    :: Int           -- ^ The size of the decompressed result. (Must be known beforehand)
+    -> BS.ByteString -- ^ The compressed payload
+    -> BS.ByteString
 decompressBlocks uncompressedSize c = SB.fromShort $ SB.SBS a
     where
         (_, array)          = decompressBlock' uncompressedSize c
