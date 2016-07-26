@@ -1,5 +1,5 @@
 name:                hascar
-version:             0.2.0.1
+version:             0.2.0.2
 synopsis:            Decompress SAPCAR archives
 description:         Decompress SAPCAR archives
 homepage:            https://github.com/VirtualForgeGmbH/hascar
