@@ -67,7 +67,8 @@ it options = withSapCarFile (oFilename options) $ do
             liftIO $ do
                 createDirectoryIfMissing True $ fromRelDir dirname
 #ifndef mingw32_HOST_OS
-                SPF.setFileMode (fromRelDir dirname) $ CMode $ cfPermissions dir
+                SPF.setFileMode (fromRelDir dirname) $ CMode $
+                    fromIntegral $ cfPermissions dir
 #endif
 
         forM_ files $ \file -> do
@@ -77,7 +78,8 @@ it options = withSapCarFile (oFilename options) $ do
                 liftIO $ putStrLn $ "Extracting " ++ show filename
             writeToFile file filename
 #ifndef mingw32_HOST_OS
-            liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $ cfPermissions file
+            liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $
+                fromIntegral $ cfPermissions file
 #endif
 
 
