@@ -89,8 +89,10 @@ The only attack vector left is the signature checking algorithm.
 
 # Usage
 
-Run hascar with the -h flag to get help. Basically, the usage should be the
-same as with SAP(R)'s sapcar tool.
+Run hascar with the -h flag to get help. The basic usage should be the
+same as with SAP(R)'s sapcar tool. It should be noted that the used
+command line parser is a bit more strict than what you might be used
+to.
 
 # Example run:
 
