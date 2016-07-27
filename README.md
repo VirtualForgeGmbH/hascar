@@ -30,6 +30,7 @@ TODO:
   started to learn haskell when he embarked on implementing
   that algorithm :-)
   => Some work on this has been done; more is required.
+* Implement CRC checking
 
 # Performance
 
