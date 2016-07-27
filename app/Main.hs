@@ -46,7 +46,7 @@ import System.Posix.Types (CMode(..), EpochTime(..))
 
 -- |Main entry point
 main :: IO ()
-main = runWithHeader it
+main = run it
 
 it :: Options -> IO ()
 it options = withSapCarFile (oFilename options) $ do

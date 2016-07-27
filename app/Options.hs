@@ -1,7 +1,7 @@
 module Options
     ( Options(..)
     , run
-    , runWithHeader
+    , run'
     ) where
 
 import Control.Monad
@@ -25,11 +25,11 @@ data Options = Options
       oListEntries          :: !Bool
     } deriving (Show)
 
-runWithHeader :: (Options -> IO a) -> IO a
-runWithHeader o = run (\l -> unless (oQuiet l) putGpl >> o l)
-
 run :: (Options -> IO a) -> IO a
-run = (>>=) (execParser spec)
+run o = run' (\l -> unless (oQuiet l) putGpl >> o l)
+
+run' :: (Options -> IO a) -> IO a
+run' = (>>=) (execParser spec)
 
 spec :: ParserInfo Options
 spec = info (helper <*> optionsParser)
