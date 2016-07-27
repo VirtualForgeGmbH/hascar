@@ -51,10 +51,11 @@ Both executed on a single CPU core. (Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz)
 
 # nixos
 
-Users of [nixos](https://nixos.org)  can simply install hascar by issuing "nix-env -iaP haskellPackages.hascar".
-You need to be subscribed to the unstable channel at this time.
+Users of [nixos](https://nixos.org) can simply install hascar by issuing
+"nix-env -iaP haskellPackages.hascar". Or if you only need it temporarily, open
+a nix-shell like this: "nix-shell -p haskellPackages.hascar"
 
-# Windows/GNU Linux/FreeBSD/OSX
+# FreeBSD/GNU_Linux/OS X/Windows
 
 To compile and install, first [get stack](
 http://docs.haskellstack.org/en/stable/README/), then issue:

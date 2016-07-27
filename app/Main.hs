@@ -24,6 +24,7 @@ module Main where
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Binary.Get
+import Foreign.C.Types (CTime(..))
 import Path
 import System.Directory
 import System.Environment
@@ -41,7 +42,7 @@ import Codec.Archive.SAPCAR
 #ifndef mingw32_HOST_OS
 import System.Posix.Files as SPF
 #endif
-import System.Posix.Types (CMode(..))
+import System.Posix.Types (CMode(..), EpochTime(..))
 
 -- |Main entry point
 main :: IO ()
@@ -69,17 +70,21 @@ it options = withSapCarFile (oFilename options) $ do
 #ifndef mingw32_HOST_OS
                 SPF.setFileMode (fromRelDir dirname) $ CMode $
                     fromIntegral $ cfPermissions dir
+                let amTime = CTime $ fromIntegral $ cfTimestamp dir
+                SPF.setFileTimes (fromRelDir dirname) amTime amTime
 #endif
 
         forM_ files $ \file -> do
             filename <- parseRelFile $ T.unpack $ carEntryFilename file
             liftIO $ cdim $ fromRelFile filename
             when (oVerbose options) $
-                liftIO $ putStrLn $ "Extracting " ++ show filename
+                liftIO $ putStrLn $ "x " ++ fromRelFile filename
             writeToFile file filename
 #ifndef mingw32_HOST_OS
             liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $
                 fromIntegral $ cfPermissions file
+            let amTime = CTime $ fromIntegral $ cfTimestamp file
+            liftIO $ SPF.setFileTimes (fromRelFile filename) amTime amTime
 #endif
 
 
