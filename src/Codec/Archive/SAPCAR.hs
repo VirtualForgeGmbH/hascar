@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE OverloadedStrings, DeriveFunctor, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ExistentialQuantification, ImpredicativeTypes #-}
 -- |
 -- (De-)compress SAPCAR files
 --
@@ -58,7 +58,15 @@ import qualified Codec.Archive.SAPCAR.FlatedFile as FF
 
 -- | The SAPCAR monad. All operations on SAPCAR files
 -- should happen inside this monad.
-type SapCar m a = StateT SapCarFile m a
+newtype SapCar s m a = SapCar
+ { unSapCar :: StateT SapCarFile m a }
+ deriving ( Functor
+             , Applicative
+             , Monad
+             , MonadIO
+             , MonadThrow
+             , MonadCatch
+             , MonadMask )
 
 -- | The state during operations inside the SAPCAR monad.
 data SapCarFile = SapCarFile
@@ -67,11 +75,11 @@ data SapCarFile = SapCarFile
     }
 
 -- | The SAPCAR file header
-data SapCarHeader = SapCarHeader
+data SapCarHeader s = SapCarHeader
     { -- | The version string of the SAPCAR archive
       scVersion             :: !Text
     , -- | Meta information on all files and directories in an archive
-      scFiles               :: ![CarEntry]
+      scFiles               :: ![CarEntry s]
     } deriving (Show)
 
 -- | The type of an entry in the SAPCAR file
@@ -95,7 +103,7 @@ getType = getType' <$> getByteString 2
 
 -- | Meta information about a single file or directory
 -- in a SAPCAR archive
-data CarEntry = CarEntry
+data CarEntry s = CarEntry
     { -- | The type of the entry
       cfFileType            :: !CarFileType
     , -- | The unix style permissions of the entry
@@ -112,7 +120,7 @@ data CarEntry = CarEntry
       cfPayloadOffset       :: !Int64
     }
 
-instance Show CarEntry where
+instance Show (CarEntry s) where
     show ce = printf "%s%s 0 root root %d\t%s 00:00 %s"
             (case cfFileType ce of
                 CarFile         -> "-" :: Text
@@ -150,7 +158,7 @@ perm True w = w
 perm False w = "-"
 
 -- | Get the filename of a car entry
-carEntryFilename :: CarEntry -> Text
+carEntryFilename :: CarEntry s -> Text
 carEntryFilename = cfFileName
 
 -- | The compression algorithm used
@@ -184,7 +192,7 @@ data CompHdr = CompHdr
 withSapCarPath
     :: (MonadIO m, MonadThrow m, MonadMask m)
     => Path b File
-    -> SapCar m a
+    -> (forall s. SapCar s m a)
     -> m a
 withSapCarPath sarfile = bracket open close . withSapCarHandle
     where
@@ -195,7 +203,7 @@ withSapCarPath sarfile = bracket open close . withSapCarHandle
 withSapCarFile
     :: (MonadIO m, MonadThrow m, MonadMask m)
     => FilePath
-    -> SapCar m a
+    -> (forall s. SapCar s m a)
     -> m a
 withSapCarFile sarfile = bracket open close . withSapCarHandle
     where
@@ -205,16 +213,16 @@ withSapCarFile sarfile = bracket open close . withSapCarHandle
 -- | Run all actions in the SapCar monad.
 withSapCarHandle
     :: (MonadIO m, MonadThrow m, MonadMask m)
-    => SapCar m a
+    => (forall s. SapCar s m a)
     -> Handle
     -> m a
-withSapCarHandle a = evalStateT a . SapCarFile
+withSapCarHandle a = evalStateT (unSapCar a) . SapCarFile
 
 --     let res = runGet (parseFileHdr >> parseSAPCARFile []) c
 
 -- | Get all entries contained inside the SapCar file.
-getEntries :: MonadIO m => SapCar m [CarEntry]
-getEntries = do
+getEntries :: MonadIO m => SapCar s m [CarEntry s]
+getEntries = SapCar $ do
     fh <- sarFileH <$> get
     let entryParser = runGetIncremental (parseFileHdr >> parseSAPCARFile [])
     res <- liftIO $ feedChunks entryParser fh
@@ -223,8 +231,8 @@ getEntries = do
 
 -- | Stream the contents of the given SapCar entry to
 -- the specified conduit sink.
-sourceEntry :: MonadIO m => CarEntry -> Sink S.ByteString IO a -> SapCar m a
-sourceEntry entry sink = do
+sourceEntry :: MonadIO m => CarEntry s -> Sink S.ByteString IO a -> SapCar s m a
+sourceEntry entry sink = SapCar $ do
     fh <- sarFileH <$> get
     case cfLength entry of
         0 -> liftIO $ emptySource $$ sink
@@ -244,7 +252,7 @@ feedChunks d h = do
     else feedChunks (pushChunk d chunk) h
 
 -- | Parse all SAPCAR entries. (tail recursive)
-parseSAPCARFile :: [CarEntry] -> Get [CarEntry]
+parseSAPCARFile :: [CarEntry s] -> Get [CarEntry s]
 parseSAPCARFile acc = do
     empty <- isEmpty
     if empty
@@ -254,7 +262,7 @@ parseSAPCARFile acc = do
         parseSAPCARFile $ entry:acc
 
 -- | Write a SapCar entry to the specified file.
-writeToFile :: (MonadIO m, MonadMask m, MonadThrow m) => CarEntry -> Path b File -> SapCar m ()
+writeToFile :: (MonadIO m, MonadMask m, MonadThrow m) => CarEntry s -> Path b File -> SapCar s m ()
 writeToFile entry path = bracket open close w
     where
         open    = liftIO $ openBinaryFile (toFilePath path) WriteMode
@@ -262,7 +270,7 @@ writeToFile entry path = bracket open close w
         w       = sourceEntry entry . writer
 
 -- | Write a SapCar entry to the specified handle.
-writeToHandle :: (MonadIO m, MonadMask m, MonadThrow m) => CarEntry -> Handle -> SapCar m ()
+writeToHandle :: (MonadIO m, MonadMask m, MonadThrow m) => CarEntry s -> Handle -> SapCar s m ()
 writeToHandle entry = sourceEntry entry . writer
 
 -- | Provide a conduit sink, write everything that arrives there to the given handle.
@@ -288,7 +296,7 @@ parseCompHdr = do
     return $ CompHdr len alg' magic spe
 
 -- | Parse one SAPCAR entry's metadata, ignoring its contents.
-parseEntry :: Get CarEntry
+parseEntry :: Get (CarEntry s)
 parseEntry = do
     fileOffset <- bytesRead
     ftype <- getType

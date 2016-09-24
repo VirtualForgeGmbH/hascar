@@ -1,3 +1,9 @@
+0.2.1.0
+-------
+
+- Make "SapCar" a real type instead of a type synonym
+- Use the type system to prevent "CarEntry"s to escape the monad
+
 0.2.0.0
 -------
 
