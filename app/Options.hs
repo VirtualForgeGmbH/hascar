@@ -5,6 +5,7 @@ module Options
     ) where
 
 import Control.Monad
+import Data.Semigroup ((<>))
 import Options.Applicative
 
 import qualified Data.Text as T

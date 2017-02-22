@@ -1,5 +1,5 @@
 name:                hascar
-version:             0.2.1.0
+version:             0.2.1.1
 synopsis:            Decompress SAPCAR archives
 description:         Decompress SAPCAR archives
 homepage:            https://github.com/VirtualForgeGmbH/hascar
@@ -43,11 +43,11 @@ executable hascar
                      , ansi-wl-pprint >= 0.6.7.3 && < 0.7
                      , binary >= 0.7.5.0 && < 0.9
                      , bytestring >= 0.10.6.0 && < 0.11
-                     , directory >= 1.2.2.0 && < 1.3
+                     , directory
                      , filepath >= 1.4.0.0 && < 1.5
                      , gitrev >= 1.2.0 && < 1.3
                      , hascar
-                     , optparse-applicative >= 0.12.1.0 && < 0.13
+                     , optparse-applicative
                      , path >= 0.5.7 && < 0.6
                      , text >= 1.2.2.1 && < 1.3
                      , transformers >= 0.4.2.0 && < 0.6

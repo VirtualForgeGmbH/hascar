@@ -194,7 +194,7 @@ withSapCarPath
     => Path b File
     -> (forall s. SapCar s m a)
     -> m a
-withSapCarPath sarfile = bracket open close . withSapCarHandle
+withSapCarPath sarfile a = bracket open close $ withSapCarHandle a
     where
         open   = liftIO $ openBinaryFile (toFilePath sarfile) ReadMode
         close  = liftIO . hClose
@@ -205,7 +205,7 @@ withSapCarFile
     => FilePath
     -> (forall s. SapCar s m a)
     -> m a
-withSapCarFile sarfile = bracket open close . withSapCarHandle
+withSapCarFile sarfile a = bracket open close $ withSapCarHandle a
     where
         open   = liftIO $ openBinaryFile sarfile ReadMode
         close  = liftIO . hClose
