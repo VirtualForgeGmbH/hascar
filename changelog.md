@@ -1,3 +1,9 @@
+0.2.1.2
+-------
+
+- Remove version constraints, rely on stack/nixos instead
+  for dependency management
+
 0.2.1.1
 -------
 
