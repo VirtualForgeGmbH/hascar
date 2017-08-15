@@ -1,5 +1,5 @@
 name:                hascar
-version:             0.2.1.1
+version:             0.2.1.2
 synopsis:            Decompress SAPCAR archives
 description:         Decompress SAPCAR archives
 homepage:            https://github.com/VirtualForgeGmbH/hascar
@@ -21,16 +21,16 @@ library
                      , Codec.Archive.SAPCAR.CanonicalHuffmanTree
                      , Codec.Archive.SAPCAR.FlexibleUtils
   build-depends:       base >= 4.7 && < 5
-                     , array >= 0.5.1.0 && < 0.6
-                     , binary >= 0.7.5.0 && < 0.9
-                     , bytestring >= 0.10.6.0 && < 0.11
-                     , containers >= 0.5.6.2 && < 0.6
-                     , conduit >= 1.2.6.6 && < 1.3
-                     , exceptions >= 0.8.2.1 && < 0.9
-                     , mtl >= 2.2.1 && < 2.3
-                     , path >= 0.5.7 && < 0.6
-                     , text >= 1.2.2.1 && < 1.3
-                     , time >= 1.5.0.1 && < 1.7
+                     , array
+                     , binary
+                     , bytestring
+                     , containers
+                     , conduit
+                     , exceptions
+                     , mtl
+                     , path
+                     , text
+                     , time
   default-language:    Haskell2010
 
 executable hascar
@@ -40,19 +40,19 @@ executable hascar
                      , Options
   ghc-options:         -rtsopts
   build-depends:       base
-                     , ansi-wl-pprint >= 0.6.7.3 && < 0.7
-                     , binary >= 0.7.5.0 && < 0.9
-                     , bytestring >= 0.10.6.0 && < 0.11
+                     , ansi-wl-pprint
+                     , binary
+                     , bytestring
                      , directory
-                     , filepath >= 1.4.0.0 && < 1.5
-                     , gitrev >= 1.2.0 && < 1.3
+                     , filepath
+                     , gitrev
                      , hascar
                      , optparse-applicative
-                     , path >= 0.5.7 && < 0.6
-                     , text >= 1.2.2.1 && < 1.3
-                     , transformers >= 0.4.2.0 && < 0.6
+                     , path
+                     , text
+                     , transformers
   if !os(windows)
-    build-depends:     unix >= 2.7.1.0 && < 2.8
+    build-depends:     unix
   default-language:    Haskell2010
 
 test-suite hascar-test
