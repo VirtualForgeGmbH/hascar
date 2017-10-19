@@ -2,7 +2,10 @@
 
 # What is hascar?
 
-HASCAR is a free unzip utility for SAP's SAPCAR format.
+HASCAR is a free unzip utility for SAP's SAPCAR format. You can use it to
+decompress sap car files on the command line. You can also use it as a library
+in your own haskell programs. So far, only the latest version of sapcar files
+are is supported, which is 2.01.
 
 It is implemented 100% in haskell, including the lzh decompression
 routine.
