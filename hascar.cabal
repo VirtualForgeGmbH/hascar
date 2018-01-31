@@ -1,7 +1,7 @@
 name:                hascar
 version:             0.2.2.0
 synopsis:            Decompress SAPCAR archives
-description:         Decompress SAPCAR archives
+description:         Decompressor command line utility and library for SAP's SAPCAR format.
 homepage:            https://github.com/VirtualForgeGmbH/hascar
 license:             GPL-2
 license-file:        LICENSE
