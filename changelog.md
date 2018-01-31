@@ -1,3 +1,9 @@
+0.2.2.0
+-------
+
+- Add an option to extract transport files from PAT
+  files automatically
+
 0.2.1.2
 -------
 

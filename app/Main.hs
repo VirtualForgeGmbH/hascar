@@ -22,8 +22,11 @@
 module Main where
 
 import Control.Monad
+import Control.Monad.Catch
 import Control.Monad.IO.Class
 import Data.Binary.Get
+import Data.ByteString (ByteString)
+import Data.Conduit
 import Foreign.C.Types (CTime(..))
 import Path
 import System.Directory
@@ -38,6 +41,7 @@ import qualified Data.Text as T
 import Options
 
 import Codec.Archive.SAPCAR
+import Codec.Archive.SAPCAR.Pat
 
 #ifndef mingw32_HOST_OS
 import System.Posix.Files as SPF
@@ -77,9 +81,17 @@ it options = withSapCarFile (oFilename options) $ do
         forM_ files $ \file -> do
             filename <- parseRelFile $ T.unpack $ carEntryFilename file
             liftIO $ cdim $ fromRelFile filename
-            when (oVerbose options) $
-                liftIO $ putStrLn $ "x " ++ fromRelFile filename
-            writeToFile file filename
+            patWritten <- if (oExtractPatFiles options)
+            then unpackPat (fromRelFile filename) file
+            else return False
+            if patWritten
+            then when (oVerbose options) $
+                liftIO $ putStrLn $ "P " ++ fromRelFile filename
+            else do
+                when (oVerbose options) $
+                    liftIO $ putStrLn $ "x " ++ fromRelFile filename
+                writeToFile file filename
+
 #ifndef mingw32_HOST_OS
             liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $
                 fromIntegral $ cfPermissions file
@@ -87,6 +99,25 @@ it options = withSapCarFile (oFilename options) $ do
             liftIO $ SPF.setFileTimes (fromRelFile filename) amTime amTime
 #endif
 
+-- | Write a transport contained inside a PAT file
+-- return if any bytes were written
+unpackPat :: FilePath -> CarEntry s -> SapCar s IO Bool
+unpackPat path file = bracket open close w
+    where
+        open    = liftIO $ openBinaryFile path WriteMode
+        close   = liftIO . hClose
+        w h     = sourceEntry file (patToTransport =$= writePat h)
+
+-- | Provide a conduit sink, write everything that arrives there to
+-- the given handle. Return True if at least one chunk was written.
+writePat :: Handle -> Sink S.ByteString IO Bool
+writePat h =
+    let loop c = do
+            chunk <- await
+            case chunk of
+                Just chunk' -> liftIO (S.hPut h chunk') >> loop True
+                Nothing -> return c
+    in loop False
 
 cdim :: FilePath -> IO ()
 cdim fp = do

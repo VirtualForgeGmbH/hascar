@@ -1,5 +1,5 @@
 name:                hascar
-version:             0.2.1.2
+version:             0.2.2.0
 synopsis:            Decompress SAPCAR archives
 description:         Decompress SAPCAR archives
 homepage:            https://github.com/VirtualForgeGmbH/hascar
@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Codec.Archive.SAPCAR
                      , Codec.Archive.SAPCAR.FlatedFile
+                     , Codec.Archive.SAPCAR.Pat
   other-modules:       Codec.Archive.SAPCAR.BitStream
                      , Codec.Archive.SAPCAR.CanonicalHuffmanTree
                      , Codec.Archive.SAPCAR.FlexibleUtils
@@ -43,7 +44,9 @@ executable hascar
                      , ansi-wl-pprint
                      , binary
                      , bytestring
+                     , conduit
                      , directory
+                     , exceptions
                      , filepath
                      , gitrev
                      , hascar

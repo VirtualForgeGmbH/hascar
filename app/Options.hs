@@ -24,6 +24,8 @@ data Options = Options
       oQuiet                :: !Bool
     , -- | Whether to list all entries in the archive
       oListEntries          :: !Bool
+    , -- | Try to extract transports from PAT files
+      oExtractPatFiles      :: !Bool
     } deriving (Show)
 
 run :: (Options -> IO a) -> IO a
@@ -61,5 +63,9 @@ optionsParser = Options
         (  long "list"
         <> short 't'
         <> help "List all entries in the archive" )
+    <*> switch
+        (  long "depat"
+        <> short 'p'
+        <> help "Try to extract transport files from PAT files" )
 
 

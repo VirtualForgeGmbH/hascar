@@ -23,6 +23,7 @@ What is supported:
 * Reading SAPCAR archives version 2.01 only
 * Unpacking files that are LZH compressed
 * Unpacking files that are not compressed
+* Unpacking transport files wrapped inside PAT files
 
 TODO:
 
@@ -97,34 +98,10 @@ same as with SAP(R)'s sapcar tool. It should be noted that the used
 command line parser is a bit more strict than what you might be used
 to.
 
-# Example run:
+# Extracting transport files from PAT files
 
-    hc@espererh-pc ~/I/hascar λ hascar -xtvf /home/hc/test.sar 
-    ┌────────────────────────────────────────────────────────────────────┐
-    │          hascar, Copyright (C) 2016, Virtual Forge GmbH.           │
-    │                                                                    │
-    │                   Maint.: Hans-Christian Esperer                   │
-    │             <hans-christian.esperer@virtualforge.com>              │
-    │                                                                    │
-    │             hascar comes with ABSOLUTELY NO WARRANTY;              │
-    │                 for details read the LICENSE file.                 │
-    │     This is free software, and you are welcome to redistribute     │
-    │   it under certain conditions; see the LICENSE file for details.   │
-    └────────────────────────────────────────────────────────────────────┘
-    
-    5 entrie(s) in the archive.
-    
-    All entries:
-    -rw-r--r-- 0 root root 9302     Jun 10 00:00 sapcar-usage
-    -rw-r--r-- 0 root root 267468   Jun 10 00:00 pg244.txt
-    -rw-r--r-- 0 root root 34857    Jun 10 00:00 man.txt
-    -rw-r--r-- 0 root root 10485764 Jun 10 00:00 foo
-    -rw-r--r-- 0 root root 30       Jun 10 00:00 date
-    
-    Extracting "sapcar-usage"
-    Extracting "pg244.txt"
-    Extracting "man.txt"
-    Extracting "foo"
-    Extracting "date"
-    
-    hc@espererh-pc ~/I/hascar λ
+SAR files can contain transport files that are wrapped inside PAT (patch)
+files. Since hascar 0.2.2.0 the option -p is offered, that will try to
+automatically detect PAT files. If such a file is detected, the contained
+transport file is extracted. In verbose mode, this is denoted by a 'P' next to
+the filename instead of an 'x'.
