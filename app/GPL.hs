@@ -17,7 +17,7 @@ import qualified Data.Text.IO as TI
 -- | The copyright text
 gpl' :: [Text]
 gpl' =
-    [ "hascar, Copyright (C) 2016-2018, Virtual Forge GmbH.", ""
+    [ "hascar, Copyright (C) 2015-2018, Virtual Forge GmbH.", ""
     , "hascar comes with ABSOLUTELY NO WARRANTY;"
     , "for details read the LICENSE file."
     , "This is free software, and you are welcome to redistribute"
