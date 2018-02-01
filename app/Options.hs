@@ -26,6 +26,8 @@ data Options = Options
       oListEntries          :: !Bool
     , -- | Try to extract transports from PAT files
       oExtractPatFiles      :: !Bool
+    , -- | Extract directory
+      oExtractDir           :: !(Maybe FilePath)
     } deriving (Show)
 
 run :: (Options -> IO a) -> IO a
@@ -67,5 +69,11 @@ optionsParser = Options
         (  long "depat"
         <> short 'p'
         <> help "Try to extract transport files from PAT files" )
+    <*> option (Just <$> str)
+        (  metavar "DIRECTORY"
+        <> long "extractdir"
+        <> short 'e'
+        <> value Nothing
+        <> help "Set the directory where to extract the files to. Defaults to the current working directory." )
 
 

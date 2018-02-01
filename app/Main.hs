@@ -67,6 +67,13 @@ it options = withSapCarFile (oFilename options) $ do
         forM_ entries print
         putStrLn ""
 
+    liftIO $ case oExtractDir options of
+        Just extractDir -> do
+            when (oVerbose options) $
+                putStrLn $ "Setting cwd to " ++ show extractDir
+            setCurrentDirectory extractDir
+        Nothing -> return ()
+
     when (oDecompress options) $ do
         forM_ dirs $ \dir -> do
             dirname <- parseRelDir $ T.unpack $ carEntryFilename dir
@@ -97,8 +104,8 @@ it options = withSapCarFile (oFilename options) $ do
                             putStrLn "Transport file"
                             putStrLn "==============================================================================="
                             putStrLn $ "Transport file : " ++ show (phTransportName patInfo')
-                            putStrLn $ "Title          : " ++ (T.unpack . T.strip . T.pack . show . phTitle $ patInfo')
-                            putStrLn $ "Extracting to  : " ++ transportFilename
+                            putStrLn $ "Title          : " ++ show (phTitle patInfo')
+                            putStrLn $ "Extracting to  : " ++ show transportFilename
                             putStrLn "\n"
                         parsedTransportFilename <- parseRelFile transportFilename
                         unpackPat (fromRelFile parsedTransportFilename) file
@@ -110,12 +117,11 @@ it options = withSapCarFile (oFilename options) $ do
                 when (oVerbose options) $
                     liftIO $ putStrLn $ "x " ++ fromRelFile filename
                 writeToFile file filename
-
 #ifndef mingw32_HOST_OS
-            liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $
-                fromIntegral $ cfPermissions file
-            let amTime = CTime $ fromIntegral $ cfTimestamp file
-            liftIO $ SPF.setFileTimes (fromRelFile filename) amTime amTime
+                liftIO $ SPF.setFileMode (fromRelFile filename) $ CMode $
+                    fromIntegral $ cfPermissions file
+                let amTime = CTime $ fromIntegral $ cfTimestamp file
+                liftIO $ SPF.setFileTimes (fromRelFile filename) amTime amTime
 #endif
 
 -- | Write a transport contained inside a PAT file
