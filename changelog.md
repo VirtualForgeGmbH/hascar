@@ -1,3 +1,11 @@
+0.2.2.1
+-------
+
+- When unwrapping transport files from PAT files,
+  name the transport files properly
+- Add an option to specify the extraction directory
+  (default: CWD)
+
 0.2.2.0
 -------
 

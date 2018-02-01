@@ -1,6 +1,6 @@
 -- |
 -- Module: CanonicalHuffmanTree
--- Copyright: (C) 2015-2017, Virtual Forge GmbH
+-- Copyright: (C) 2015-2018, Virtual Forge GmbH
 -- License: GPL2
 -- Maintainer: Hans-Christian Esperer <hc@hcesperer.org>
 -- Stability: experimental

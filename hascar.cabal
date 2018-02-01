@@ -7,7 +7,7 @@ license:             GPL-2
 license-file:        LICENSE
 author:              Hans-Christian Esperer <hc@hcesperer.org>
 maintainer:          Hans-Christian Esperer <hc@hcesperer.org>
-copyright:           2016-2018, Virtual Forge GmbH
+copyright:           2015-2018, Virtual Forge GmbH
 category:            Codec
 build-type:          Simple
 extra-source-files:  README.md changelog.md test/test6.sar
