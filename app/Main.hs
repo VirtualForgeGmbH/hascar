@@ -36,7 +36,10 @@ import System.IO
 
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Lazy as L
+import qualified Data.Conduit.List as DCL
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import qualified Data.Text.Encoding.Error as TEE
 
 import Options
 
@@ -82,11 +85,27 @@ it options = withSapCarFile (oFilename options) $ do
             filename <- parseRelFile $ T.unpack $ carEntryFilename file
             liftIO $ cdim $ fromRelFile filename
             patWritten <- if (oExtractPatFiles options)
-            then unpackPat (fromRelFile filename) file
+            then do
+                patInfo <- loadPatInfo file
+                case patInfo of
+                    Just patInfo' -> do
+                        let transportName = T.unpack . T.strip . TE.decodeUtf8With TEE.lenientDecode . phTransportName $ patInfo'
+                            patFilename = "R" ++ drop 4 transportName
+                            patExt = take 3 transportName
+                            transportFilename = patFilename ++ "." ++ patExt
+                        liftIO $ when (oVerbose options) $ do
+                            putStrLn "Transport file"
+                            putStrLn "==============================================================================="
+                            putStrLn $ "Transport file : " ++ show (phTransportName patInfo')
+                            putStrLn $ "Title          : " ++ (T.unpack . T.strip . T.pack . show . phTitle $ patInfo')
+                            putStrLn $ "Extracting to  : " ++ transportFilename
+                            putStrLn "\n"
+                        parsedTransportFilename <- parseRelFile transportFilename
+                        unpackPat (fromRelFile parsedTransportFilename) file
+                    Nothing -> return False
             else return False
             if patWritten
-            then when (oVerbose options) $
-                liftIO $ putStrLn $ "P " ++ fromRelFile filename
+            then return () -- do nothing here
             else do
                 when (oVerbose options) $
                     liftIO $ putStrLn $ "x " ++ fromRelFile filename
@@ -107,6 +126,9 @@ unpackPat path file = bracket open close w
         open    = liftIO $ openBinaryFile path WriteMode
         close   = liftIO . hClose
         w h     = sourceEntry file (patToTransport =$= writePat h)
+
+loadPatInfo :: CarEntry s -> SapCar s IO (Maybe PatHeader)
+loadPatInfo file = sourceEntry file (getPatHeader =$= DCL.head)
 
 -- | Provide a conduit sink, write everything that arrives there to
 -- the given handle. Return True if at least one chunk was written.

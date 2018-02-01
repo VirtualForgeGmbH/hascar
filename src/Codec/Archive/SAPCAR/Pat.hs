@@ -26,6 +26,8 @@
 -- USA
 module Codec.Archive.SAPCAR.Pat
     ( patToTransport
+    , getPatHeader
+    , PatHeader(..)
     ) where
 
 import Control.Monad
@@ -53,20 +55,22 @@ maximumChunkSize = 65536
 -- | One chunk in a PAT file
 data PatChunk = PatChunk
     { -- | The version of the chunk
-      pcVersion         :: Int
+      pcVersion         :: !Int
     , -- | The type of the PAT chunk
-      pcType            :: PatChunkType
+      pcType            :: !PatChunkType
     , -- | The length ot the chunk
-      pcLength          :: Int
+      pcLength          :: !Int
     , -- | Reserved 14 bytes
-      pcReserved        :: S.ByteString
+      pcReserved        :: !S.ByteString
     , -- | The raw payload of the chunk
-      pcPayload         :: S.ByteString }
+      pcPayload         :: !S.ByteString }
     deriving (Show, Eq)
 
 -- | The type of a PAT chunk
 data PatChunkType
-    = -- | A fragment of an SAP transport file
+    = -- | The primary header of the PAT file
+      PatPrimaryHeader
+    | -- | A fragment of an SAP transport file
       TransportPatChunk
     | -- | An unknown type of chunk
       UnknownPatChunk
@@ -74,12 +78,23 @@ data PatChunkType
       NotAPatFile
     deriving (Eq, Enum, Show)
 
+data PatHeader = PatHeader
+    { phMagic           :: !S.ByteString -- 3 bytes
+    , phTransportName   :: !S.ByteString -- 20 bytes
+    , phTitle           :: !S.ByteString -- 60 bytes
+    } deriving (Eq, Show)
+
+readPatPrimaryHeader :: Get PatHeader
+readPatPrimaryHeader = PatHeader <$> getByteString 3 <*> getByteString 20 <*> getByteString 60
+
 getChunkType :: Get PatChunkType
 getChunkType = getChunkType' <$> getWord8
 
 getChunkType' :: Word8 -> PatChunkType
+getChunkType' 65   = PatPrimaryHeader
 getChunkType' 82   = TransportPatChunk
 getChunkType' (-1) = NotAPatFile
+-- getChunkType' x    = show x `trace` UnknownPatChunk
 getChunkType' _    = UnknownPatChunk
 
 getChunkVersion :: Get Int
@@ -107,6 +122,28 @@ getPatChunk = do
 -- | Extract a transport file from a PAT file chunk by chunk
 patToTransport :: Monad m => Conduit S.ByteString m S.ByteString
 patToTransport = patToTransport' S.empty $ runGetIncremental getPatChunk
+
+getPatHeader :: Monad m => Conduit S.ByteString m PatHeader
+getPatHeader = getPatHeader' S.empty $ runGetIncremental getPatChunk
+
+getPatHeader'
+    :: Monad m
+    => S.ByteString
+    -> Decoder PatChunk
+    -> Conduit S.ByteString m PatHeader
+getPatHeader' s (Partial d)
+    | S.null s = do
+        chunk <- await
+        case chunk of
+            Just chunk' -> getPatHeader' S.empty $ pushChunk (Partial d) chunk'
+            Nothing     -> return ()
+    | otherwise = getPatHeader' S.empty $ pushChunk (Partial d) s
+getPatHeader' s (Done rest _ r) = do
+    when (pcType r == PatPrimaryHeader) $
+        yield $ runGet readPatPrimaryHeader $ L.fromStrict $ pcPayload r
+    unless (pcType r == NotAPatFile) $
+        getPatHeader' rest $ runGetIncremental getPatChunk
+
 
 patToTransport'
     :: Monad m

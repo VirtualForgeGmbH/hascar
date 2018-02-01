@@ -72,5 +72,4 @@ to.
 SAR files can contain transport files that are wrapped inside PAT (patch)
 files. Since hascar 0.2.2.0 the option -p is offered, that will try to
 automatically detect PAT files. If such a file is detected, the contained
-transport file is extracted. In verbose mode, this is denoted by a 'P' next to
-the filename instead of an 'x'.
+transport file is extracted.
