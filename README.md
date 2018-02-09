@@ -64,8 +64,7 @@ Since both use a proprietary crypto API, this is currently not supported.
 
 Run hascar with the -h flag to get help. The basic usage should be the
 same as with SAP(R)'s sapcar tool. It should be noted that the used
-command line parser is a bit more strict than what you might be used
-to.
+command line parser is a bit stricter than what you might be used to.
 
 # Extracting transport files from PAT files
 
