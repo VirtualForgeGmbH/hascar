@@ -1,3 +1,9 @@
+0.2.2.2
+-------
+
+- Import the semigroups package to be compatible
+  with earlier versions of ghc
+
 0.2.2.1
 -------
 
