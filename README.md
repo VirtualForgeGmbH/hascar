@@ -70,5 +70,5 @@ command line parser is a bit stricter than what you might be used to.
 
 SAR files can contain transport files that are wrapped inside PAT (patch)
 files. Since hascar 0.2.2.0 the option -p is offered, that will try to
-automatically detect PAT files. If such a file is detected and the -p flg is
+automatically detect PAT files. If such a file is detected and the -p flag is
 set, the transport file contained in the PAT file is extracted.
