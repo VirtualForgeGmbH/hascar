@@ -66,22 +66,23 @@ it options = withSapCarFile (oFilename options) $ do
         Nothing -> return ()
 
     when (oDecompress options) $ do
-        forM_ dirs $ \dir -> do
-            dirname <- parseRelDir $ T.unpack $ carEntryFilename dir
-            when (oVerbose options) $
-                liftIO $ putStrLn $ "Creating " ++ show dirname
-            liftIO $ do
-                createDirectoryIfMissing True $ fromRelDir dirname
+        unless (oExtractPatFiles options) $ do
+            forM_ dirs $ \dir -> do
+                dirname <- parseRelDir $ T.unpack $ carEntryFilename dir
+                when (oVerbose options) $
+                    liftIO $ putStrLn $ "Creating " ++ show dirname
+                liftIO $ do
+                    createDirectoryIfMissing True $ fromRelDir dirname
 #ifndef mingw32_HOST_OS
-                SPF.setFileMode (fromRelDir dirname) $ CMode $
-                    fromIntegral $ cfPermissions dir
-                let amTime = CTime $ fromIntegral $ cfTimestamp dir
-                SPF.setFileTimes (fromRelDir dirname) amTime amTime
+                    SPF.setFileMode (fromRelDir dirname) $ CMode $
+                        fromIntegral $ cfPermissions dir
+                    let amTime = CTime $ fromIntegral $ cfTimestamp dir
+                    SPF.setFileTimes (fromRelDir dirname) amTime amTime
 #endif
 
         forM_ files $ \file -> do
             filename <- parseRelFile $ T.unpack $ carEntryFilename file
-            liftIO $ cdim $ fromRelFile filename
+            unless (oExtractPatFiles options) $ void $ liftIO $ cdim $ fromRelFile filename
             patWritten <- if (oExtractPatFiles options)
             then do
                 patInfo <- loadPatInfo file
@@ -100,7 +101,7 @@ it options = withSapCarFile (oFilename options) $ do
                             putStrLn "\n"
                         parsedTransportFilename <- parseRelFile transportFilename
                         unpackPat (fromRelFile parsedTransportFilename) file
-                    Nothing -> return False
+                    Nothing -> return True
             else return False
             if patWritten
             then return () -- do nothing here
